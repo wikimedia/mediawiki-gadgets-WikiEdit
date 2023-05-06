@@ -7,7 +7,7 @@
  */
 window.WikiEdit = {
 
-	elements: 'p, li, dd, caption, th, td',
+	elements: 'p, li, dd, td',
 
 	init: function () {
 
@@ -36,8 +36,7 @@ window.WikiEdit = {
 	},
 
 	/**
-	 * Add the edit buttons to the supported elements
-	 *
+	 * Add the edit buttons to the elements that are likely to be editable
 	 */
 	addEditButtons: function () {
 		var $elements = $( WikiEdit.elements, '#mw-content-text' );
@@ -224,7 +223,7 @@ window.WikiEdit = {
 	/**
 	 * Load the wikitext of the current page
 	 */
-	pageWikitext: '',
+	pageWikitext: '', // Will hold the wikitext
 	loadPageWikitext: function () {
 		var params = {
 			'page': mw.config.get( 'wgPageName' ),
