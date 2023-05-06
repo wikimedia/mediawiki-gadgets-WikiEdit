@@ -183,8 +183,7 @@ window.WikiEdit = {
 			'action': 'edit',
 			'title': mw.config.get( 'wgPageName' ),
 			'text': WikiEdit.pageWikitext,
-			'summary': WikiEdit.makeSummary( newWikitext, $element ),
-			'tags': 'wikiedit',
+			'summary': WikiEdit.makeSummary( newWikitext, $element )
 		};
 		new mw.Api().postWithEditToken( params ).done( function () {
 			WikiEdit.onSuccess( $element, newWikitext );
@@ -396,7 +395,4 @@ window.WikiEdit = {
 	}
 };
 
-$.when( mw.loader.using( [
-	'mediawiki.api',
-	'mediawiki.util'
-] ), $.ready ).then( WikiEdit.init );
+$( WikiEdit.init );
