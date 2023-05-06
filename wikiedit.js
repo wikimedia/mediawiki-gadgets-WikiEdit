@@ -361,26 +361,26 @@ window.WikiEdit = {
 	},
 
 	/**
-     * Helper method to find the closest section
-     * by traversing back and up the DOM tree
-     *
-     * @param {jQuery object} Starting element
-     * @return {jQuery object} Closest section
-     */
-    getSection: function ( $element ) {
-    	if ( $element.attr( 'id' ) === 'mw-content-text' ) {
-    		return;
-    	}
-    	if ( $element.is( ':header' ) ) {
-    		return $element;
-    	}
-    	var $previous = $element.prevAll( ':header' ).first();
-    	if ( $previous.length ) {
-    	    return $previous;
-    	}
-    	var $parent = $element.parent();
-    	return WikiEdit.getSection( $parent );
-    },
+	 * Helper method to find the closest section
+	 * by traversing back and up the DOM tree
+	 *
+	 * @param {jQuery object} Starting element
+	 * @return {jQuery object} Closest section
+	 */
+	getSection: function ( $element ) {
+		if ( $element.attr( 'id' ) === 'mw-content-text' ) {
+			return;
+		}
+		if ( $element.is( ':header' ) ) {
+			return $element;
+		}
+		var $previous = $element.prevAll( ':header' ).first();
+		if ( $previous.length ) {
+			return $previous;
+		}
+		var $parent = $element.parent();
+		return WikiEdit.getSection( $parent );
+	},
 
 	/**
 	 * Helper function to decode base64 strings
@@ -396,4 +396,7 @@ window.WikiEdit = {
 	}
 };
 
-$( WikiEdit.init );
+$.when( mw.loader.using( [
+	'mediawiki.api',
+	'mediawiki.util'
+] ), $.ready ).then( WikiEdit.init );
