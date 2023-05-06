@@ -32,33 +32,25 @@ window.WikiEdit = {
 			return;
 		}
 
-		WikiEdit.getPageWikitext().done( WikiEdit.addEditButtons );
-	},
-
-	/**
-	 * Get the wikitext of the current page
-	 */
-	getPageWikitext: function () {
-		var params = {
-			'page': mw.config.get( 'wgPageName' ),
-			'action': 'parse',
-			'prop': 'wikitext',
-			'formatversion': 2,
-		};
-		return new mw.Api().get( params ).done( function ( data ) {
-			var pageWikitext = data.parse.wikitext;
-			WikiEdit.pageWikitext = pageWikitext;
-		} );
+		WikiEdit.addEditButtons();
 	},
 
 	/**
 	 * Add the edit buttons to the supported elements
 	 *
-	 * The behavior of the buttons is different in Minerva
-	 * because on mobile devices there's no hover event
 	 */
 	addEditButtons: function () {
 		var $elements = $( WikiEdit.elements, '#mw-content-text' );
+
+		// Filter elements with no text node
+		// @todo Make more efficient
+		$elements = $elements.filter( function () {
+			var $element = $( this );
+			return WikiEdit.getLongestText( $element );
+		} );
+
+		// The behavior of the buttons is different in Minerva
+		// because on mobile devices there's no hover event
 		if ( mw.config.get( 'skin' ) === 'minerva' ) {
 			$elements.each( WikiEdit.addEditButton );
 			$elements.each( WikiEdit.showEditButton );
@@ -83,11 +75,6 @@ window.WikiEdit = {
 	addEditButton: function () {
 		var $element = $( this );
 
-		var relevantWikitext = WikiEdit.getRelevantWikitext( $element );
-		if ( !relevantWikitext ) {
-			return;
-		}
-
 		// Make the button
 		var path = '<path fill="currentColor" d="M16.77 8l1.94-2a1 1 0 0 0 0-1.41l-3.34-3.3a1 1 0 0 0-1.41 0L12 3.23zm-5.81-3.71L1 14.25V19h4.75l9.96-9.96-4.75-4.75z"></path>';
 		var icon = '<svg width="14" height="14" viewBox="0 0 20 20">' + path + '</svg>';
@@ -111,8 +98,31 @@ window.WikiEdit = {
 	 * Add edit form
 	 */
 	addEditForm: function ( event ) {
+		var $button = $( event.target );
+		var $element = $button.closest( WikiEdit.elements );
 
-		// Load the necessary CSS and messages the first time this method is called
+		// Load the page wikitext the first time this method is called
+		if ( !WikiEdit.pageWikitext ) {
+			WikiEdit.loadPageWikitext().done( function () {
+				WikiEdit.addEditForm( event );
+			} );
+			return;
+		}
+
+		// If no relevant wikitext is found, fallback to regular edit
+		var wikitext = WikiEdit.getRelevantWikitext( $element );
+		if ( !wikitext ) {
+			var $section = WikiEdit.getSection( $element );
+			var sectionNumber = $section ? 1 + $section.prevAll( ':header' ).length : 0;
+			var edit = mw.util.getUrl( null, {
+				action: 'edit',
+				section: sectionNumber
+			} );
+			window.location.href = edit;
+			return;
+		}
+
+		// Load the necessary CSS and messages the first time we reach this point
 		if ( !WikiEdit.loadedCSS ) {
 			WikiEdit.loadCSS().done( function () {
 				WikiEdit.addEditForm( event );
@@ -126,13 +136,6 @@ window.WikiEdit = {
 			return;
 		}
 
-		var $button = $( event.target );
-		var $element = $button.closest( WikiEdit.elements );
-		var $original = $element.clone( true ); // Save it for later
-
-		// Get the relevant wikitext
-		var wikitext = WikiEdit.getRelevantWikitext( $element );
-
 		// Make the form
 		var save = mw.message( 'wikiedit-form-save' ).text();
 		var cancel = mw.message( 'wikiedit-form-cancel' ).text();
@@ -145,6 +148,7 @@ window.WikiEdit = {
 		$form.append( $input, $footer );
 
 		// Add to the DOM
+		var $original = $element.clone( true ); // Save it for later
 		$element.html( $form );
 		$input.focus();
 
@@ -180,7 +184,7 @@ window.WikiEdit = {
 			'action': 'edit',
 			'title': mw.config.get( 'wgPageName' ),
 			'text': WikiEdit.pageWikitext,
-			'summary': WikiEdit.makeSummary( newWikitext ),
+			'summary': WikiEdit.makeSummary( newWikitext, $element ),
 			'tags': 'wikiedit',
 		};
 		var api = new mw.Api();
@@ -214,6 +218,23 @@ window.WikiEdit = {
 			var text = data.parse.text;
 			var html = $( text ).html();
 			$element.html( html );
+		} );
+	},
+
+	/**
+	 * Load the wikitext of the current page
+	 */
+	pageWikitext: '',
+	loadPageWikitext: function () {
+		var params = {
+			'page': mw.config.get( 'wgPageName' ),
+			'action': 'parse',
+			'prop': 'wikitext',
+			'formatversion': 2,
+		};
+		return new mw.Api().get( params ).done( function ( data ) {
+			var pageWikitext = data.parse.wikitext;
+			WikiEdit.pageWikitext = pageWikitext;
 		} );
 	},
 
@@ -263,16 +284,7 @@ window.WikiEdit = {
 
 		// Get the text of longest text node
 		// because it has the most chances of being unique
-		var text = '';
-		var $textNodes = $element.contents().filter( function () {
-			return this.nodeType === Node.TEXT_NODE;
-		} );
-		$textNodes.each( function () {
-			var nodeText = $( this ).text().trim();
-			if ( nodeText.length > text.length ) {
-				text = nodeText;
-			}
-		} );
+		var text = WikiEdit.getLongestText( $element );
 
 		// Some elements don't have text nodes
 		// for example list items with just a link
@@ -324,11 +336,28 @@ window.WikiEdit = {
 	},
 
 	/**
+	 * Helper method to get the text of the longest text node
+	 */
+	getLongestText: function ( $element ) {
+		var text = '';
+		var $textNodes = $element.contents().filter( function () {
+			return this.nodeType === Node.TEXT_NODE;
+		} );
+		$textNodes.each( function () {
+			var nodeText = $( this ).text().trim();
+			if ( nodeText.length > text.length ) {
+				text = nodeText;
+			}
+		} );
+		return text;
+	},
+
+	/**
 	 * Helper method to build a helpful edit summary
 	 */
-	makeSummary: function ( wikitext ) {
+	makeSummary: function ( wikitext, $element ) {
 		var action = 'edit';
-		if ( !inputWikitext ) {
+		if ( !wikitext ) {
 			action = 'delete';
 		}
 		var link = 'mw:WikiEdit';
@@ -336,8 +365,35 @@ window.WikiEdit = {
 			link = mw.config.get( 'wikiedit-link' );
 		}
 		var summary = mw.message( 'wikiedit-summary-' + action, link ).text();
+		var $section = WikiEdit.getSection( $element );
+		if ( $section ) {
+			var sectionText = $section.find( '.mw-headline' ).text();
+			summary = '/* ' + sectionText + ' */ ' + summary;
+		}
 		return summary;
 	},
+
+	/**
+     * Helper method to find the closest section
+     * by traversing back and up the DOM tree
+     *
+     * @param {jQuery object} Starting element
+     * @return {jQuery object} Closest section
+     */
+    getSection: function ( $element ) {
+    	if ( $element.attr( 'id' ) === 'mw-content-text' ) {
+    		return;
+    	}
+    	if ( $element.is( ':header' ) ) {
+    		return $element;
+    	}
+    	var $previous = $element.prevAll( ':header' ).first();
+    	if ( $previous.length ) {
+    	    return $previous;
+    	}
+    	var $parent = $element.parent();
+    	return WikiEdit.getSection( $parent );
+    },
 
 	/**
 	 * Helper function to decode base64 strings
