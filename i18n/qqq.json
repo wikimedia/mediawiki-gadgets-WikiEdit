@@ -1,9 +1,9 @@
 {
-    "@metadata": {
-        "authors": [
-            "Sophivorus"
-        ]
-    },
+	"@metadata": {
+		"authors": [
+			"Sophivorus"
+		]
+	},
 	"wikiedit-form-save": "Text of the button to save the changes",
 	"wikiedit-form-cancel": "Text of the button to cancel the edit",
 	"wikiedit-form-minor": "Text of the checkbox to mark the edit as minor",

@@ -40,10 +40,9 @@ window.WikiEdit = {
 	 */
 	loadedMessages: false, // Tracking flag
 	loadMessages: function () {
-		return $.get( '//gerrit.wikimedia.org/r/plugins/gitiles/mediawiki/gadgets/WikiEdit/+/master/wikiedit.js?format=text', function ( data ) {
-			var messages;
-			mw.messages.set( messages );
-		} );
+		return $.getJSON( '//gerrit.wikimedia.org/r/plugins/gitiles/mediawiki/gadgets/WikiEdit/+/master/i18n/en.js?format=json', function ( json ) {
+			console.log( json );
+		} ).fail( console.log );
 	},
 
 	/**
