@@ -1,0 +1,12 @@
+{
+    "@metadata": {
+        "authors": [
+            "Sophivorus"
+        ]
+    },
+	"wikiedit-form-save": "Save",
+	"wikiedit-form-cancel": "Cancel",
+	"wikiedit-form-minor": "Minor edit",
+	"wikiedit-summary-edit": "Edit content with [[$1|#wikiedit]]",
+	"wikiedit-summary-delete": "Delete content with [[$1|#wikiedit]]"
+}
