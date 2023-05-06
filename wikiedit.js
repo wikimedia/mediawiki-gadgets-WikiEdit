@@ -186,21 +186,9 @@ window.WikiEdit = {
 			'summary': WikiEdit.makeSummary( newWikitext, $element ),
 			'tags': 'wikiedit',
 		};
-		var api = new mw.Api();
-		if ( mw.config.get( 'wgUserName' ) ) {
-			api.postWithEditToken( params ).done( function () {
-				WikiEdit.onSuccess( $element, newWikitext );
-			} );
-		} else {
-			api.login(
-				'Anon@WikiEdit',
-				'a5ehsatdosjes8spfgdpvisgki20avgs'
-			).done( function () {
-				api.postWithEditToken( params ).done( function () {
-					WikiEdit.onSuccess( $element, newWikitext );
-				} );
-			} );
-		}
+		new mw.Api().postWithEditToken( params ).done( function () {
+			WikiEdit.onSuccess( $element, newWikitext );
+		} );
 	},
 
 	onSuccess: function ( $element, newWikitext ) {
