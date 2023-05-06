@@ -1,11 +1,3 @@
-.wikiedit-button {
-	color: #a2a9b1;
-	cursor: pointer;
-}
-.wikiedit-button:hover {
-	color: #202122;
-}
-
 .wikiedit-form-input {
 	font-family: monospace;
 	overflow: hidden;

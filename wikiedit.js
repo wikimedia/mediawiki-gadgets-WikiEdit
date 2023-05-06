@@ -36,28 +36,6 @@ window.WikiEdit = {
 	},
 
 	/**
-	 * Load interface messages directly from the Wikimedia repository 
-	 */
-	loadedMessages: false, // Tracking flag
-	loadMessages: function () {
-		return $.getJSON( '//gerrit.wikimedia.org/r/plugins/gitiles/mediawiki/gadgets/WikiEdit/+/master/i18n/en.js?format=json', function ( json ) {
-			console.log( json );
-		} ).fail( console.log );
-	},
-
-	/**
-	 * Load CSS directly from the Wikimedia repository and add it to the DOM
-	 */
-	loadedCSS: false, // Tracking flag
-	loadCSS: function () {
-		return $.get( '//gerrit.wikimedia.org/r/plugins/gitiles/mediawiki/gadgets/WikiEdit/+/master/wikiedit.css?format=text', function ( data ) {
-			var css = atob( data );
-			var $style = $( '<style>' ).html( css );
-			$( 'head' ).append( $style );
-		} );
-	},
-
-	/**
 	 * Get the wikitext of the current page
 	 */
 	getPageWikitext: function () {
@@ -113,10 +91,13 @@ window.WikiEdit = {
 		// Make the button
 		var path = '<path fill="currentColor" d="M16.77 8l1.94-2a1 1 0 0 0 0-1.41l-3.34-3.3a1 1 0 0 0-1.41 0L12 3.23zm-5.81-3.71L1 14.25V19h4.75l9.96-9.96-4.75-4.75z"></path>';
 		var icon = '<svg width="14" height="14" viewBox="0 0 20 20">' + path + '</svg>';
-		var type = WikiEdit.getElementType( $element );
-		var title = mw.message( 'wikiedit-title-edit-' + type );
-		var $button = $( '<span hidden class="wikiedit-button noprint" title="' + title + '">' + icon + '</span>' );
+		var $button = $( '<span hidden class="wikiedit-button noprint">' + icon + '</span>' );
 		$button.on( 'click', WikiEdit.addEditForm );
+
+		// Add a little CSS from here to delay loading the full CSS until the user actually clicks
+		$button.css( { 'color': '#a2a9b1', 'cursor': 'pointer' } );
+		$button.on( 'mouseenter', function () { $( this ).css( 'color', '#202122' ); } );
+		$button.on( 'mouseleave', function () { $( this ).css( 'color', '#a2a9b1' ); } );
 
 		// Add to the DOM
 		if ( $element.children( 'ul, ol, dl' ).length ) {
@@ -129,19 +110,23 @@ window.WikiEdit = {
 	/**
 	 * Add edit form
 	 */
-	addEditForm: function () {
+	addEditForm: function ( event ) {
 
 		// Load the necessary CSS and messages the first time this method is called
 		if ( !WikiEdit.loadedCSS ) {
-			WikiEdit.loadCSS().done( WikiEdit.addEditForm );
+			WikiEdit.loadCSS().done( function () {
+				WikiEdit.addEditForm( event );
+			} );
 			return;
 		}
 		if ( !WikiEdit.loadedMessages ) {
-			WikiEdit.loadCSS().done( WikiEdit.addEditForm );
+			WikiEdit.loadMessages().done( function () {
+				WikiEdit.addEditForm( event );
+			} );
 			return;
 		}
-console.log( this );
-		var $button = $( this );
+
+		var $button = $( event.target );
 		var $element = $button.closest( WikiEdit.elements );
 		var $original = $element.clone( true ); // Save it for later
 
@@ -149,11 +134,13 @@ console.log( this );
 		var wikitext = WikiEdit.getRelevantWikitext( $element );
 
 		// Make the form
+		var save = mw.message( 'wikiedit-form-save' ).text();
+		var cancel = mw.message( 'wikiedit-form-cancel' ).text();
 		var $form = $( '<div class="wikiedit-form"></div>' );
-		var $input = $( '<div class="wikiedit-form-input" contenteditable="true"></div>' ).text( relevantWikitext );
+		var $input = $( '<div class="wikiedit-form-input" contenteditable="true"></div>' ).text( wikitext );
 		var $footer = $( '<div class="wikiedit-form-footer"></div>' );
-		var $submit = $( '<button class="wikiedit-form-submit mw-ui-button mw-ui-progressive">Save</button>' );
-		var $cancel = $( '<button class="wikiedit-form-cancel mw-ui-button">Cancel</button>' );
+		var $submit = $( '<button class="wikiedit-form-submit mw-ui-button mw-ui-progressive">' + save + '</button>' );
+		var $cancel = $( '<button class="wikiedit-form-cancel mw-ui-button">' + cancel + '</button>' );
 		$footer.append( $submit, $cancel );
 		$form.append( $input, $footer );
 
@@ -172,8 +159,6 @@ console.log( this );
 		$cancel.on( 'click', function () {
 			$element.replaceWith( $original );
 		} );
-
-		return false;
 	},
 
 	onSubmit: function ( event ) {
@@ -195,7 +180,7 @@ console.log( this );
 			'action': 'edit',
 			'title': mw.config.get( 'wgPageName' ),
 			'text': WikiEdit.pageWikitext,
-			'summary': WikiEdit.makeSummary( $element, newWikitext ),
+			'summary': WikiEdit.makeSummary( newWikitext ),
 			'tags': 'wikiedit',
 		};
 		var api = new mw.Api();
@@ -233,20 +218,30 @@ console.log( this );
 	},
 
 	/**
-	 * Helper method to build an adequate edit summary
+	 * Load interface messages directly from the Wikimedia repository 
 	 */
-	makeSummary: function ( element, inputWikitext ) {
-		var action = 'edit';
-		if ( !inputWikitext ) {
-			action = 'delete';
-		}
-		var type = WikiEdit.getElementType( element );
-		var link = 'mw:WikiEdit';
-		if ( mw.config.get( 'wikiedit-link' ) ) {
-			link = mw.config.get( 'wikiedit-link' );
-		}
-		var summary = mw.message( 'wikiedit-summary-' + action + '-' + type, link ).text();
-		return summary;
+	loadedMessages: false, // Tracking flag
+	loadMessages: function () {
+		return $.get( '//gerrit.wikimedia.org/r/plugins/gitiles/mediawiki/gadgets/WikiEdit/+/master/i18n/en.json?format=text', function ( data ) {
+			var json = WikiEdit.decodeBase64( data );
+			var messages = JSON.parse( json );
+			delete messages[ '@metadata' ];
+			mw.messages.set( messages );
+			WikiEdit.loadedMessages = true;
+		} );
+	},
+
+	/**
+	 * Load CSS directly from the Wikimedia repository and add it to the DOM
+	 */
+	loadedCSS: false, // Tracking flag
+	loadCSS: function () {
+		return $.get( '//gerrit.wikimedia.org/r/plugins/gitiles/mediawiki/gadgets/WikiEdit/+/master/wikiedit.css?format=text', function ( data ) {
+			var css = atob( data );
+			var $style = $( '<style>' ).html( css );
+			$( 'head' ).append( $style );
+			WikiEdit.loadedCSS = true;
+		} );
 	},
 
 	/**
@@ -329,27 +324,32 @@ console.log( this );
 	},
 
 	/**
-     * Helper method to get the type of element
-     *
-     * @param {jQuery object}
-     * @return {string}
-     */
-    getElementType: function ( $element ) {
-		var tag = $element.prop( 'tagName' );
-		switch ( tag ) {
-			case 'P':
-				return 'paragraph';
-			case 'LI':
-				return 'list-item';
-			case 'DD':
-				return 'reply';
-			case 'CAPTION':
-				return 'table-caption';
-			case 'TH':
-				return 'table-header';
-			case 'TD':
-				return 'table-data';
+	 * Helper method to build a helpful edit summary
+	 */
+	makeSummary: function ( wikitext ) {
+		var action = 'edit';
+		if ( !inputWikitext ) {
+			action = 'delete';
 		}
+		var link = 'mw:WikiEdit';
+		if ( mw.config.get( 'wikiedit-link' ) ) {
+			link = mw.config.get( 'wikiedit-link' );
+		}
+		var summary = mw.message( 'wikiedit-summary-' + action, link ).text();
+		return summary;
+	},
+
+	/**
+	 * Helper function to decode base64 strings
+	 * See https://stackoverflow.com/questions/30106476
+	 *
+	 * @param {string} Encoded string
+	 * @return {string} Decoded string
+	 */
+	decodeBase64: function ( string ) {
+		return decodeURIComponent( window.atob( string ).split( '' ).map( function ( character ) {
+			return '%' + ( '00' + character.charCodeAt( 0 ).toString( 16 ) ).slice( -2 );
+		} ).join( '' ) );
 	}
 };
 
