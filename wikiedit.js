@@ -397,6 +397,7 @@ window.WikiEdit = {
 			var sectionText = $section.find( '.mw-headline' ).text();
 			summary = '/* ' + sectionText + ' */ ' + summary;
 		}
+		summary += ' #wikiedit'; // See https://hashtags.wmcloud.org
 		return summary;
 	},
 
