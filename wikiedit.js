@@ -14,6 +14,12 @@ window.WikiEdit = {
 	selectors: 'p, li, td, dd, .mw-headline',
 
 	/**
+	 * Documentation to link from the edit summaries
+	 * Wikis may customize this with mw.config.set( 'wikiedit-link', 'https://www.example.org' )
+	 */
+	link: 'https://www.mediawiki.org/wiki/WikiEdit',
+
+	/**
 	 * Initialization script
 	 */
 	init: function () {
@@ -39,10 +45,14 @@ window.WikiEdit = {
 			return;
 		}
 
-		// Give wikis control over which elements are editable
+		// Give priority to local config
 		var selectors = mw.config.get( 'wikiedit-selectors' );
 		if ( selectors ) {
 			WikiEdit.selectors = selectors;
+		}
+		var link = mw.config.get( 'wikiedit-link' );
+		if ( link ) {
+			WikiEdit.link = link;
 		}
 
 		WikiEdit.addEditButtons();
@@ -378,10 +388,7 @@ window.WikiEdit = {
 		if ( !wikitext ) {
 			action = 'delete';
 		}
-		var link = 'mw:WikiEdit';
-		if ( mw.config.get( 'wikiedit-link' ) ) {
-			link = mw.config.get( 'wikiedit-link' );
-		}
+		var link = WikiEdit.link;
 		var summary = mw.message( 'wikiedit-summary-' + action, link ).text();
 		var $section = WikiEdit.getSection( $element );
 		if ( $section ) {
