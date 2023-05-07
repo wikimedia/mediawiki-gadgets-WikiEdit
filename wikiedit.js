@@ -264,11 +264,13 @@ window.WikiEdit = {
 	},
 
 	/**
-	 * Load interface messages directly from the Wikimedia repository 
+	 * Load interface messages directly from the Wikimedia repository
+	 * @todo Proper support for other languages
 	 */
 	loadedMessages: false, // Tracking flag
 	loadMessages: function () {
-		return $.get( '//gerrit.wikimedia.org/r/plugins/gitiles/mediawiki/gadgets/WikiEdit/+/master/i18n/en.json?format=text', function ( data ) {
+		var language = mw.config.get( 'wgContentLanguage' );
+		return $.get( '//gerrit.wikimedia.org/r/plugins/gitiles/mediawiki/gadgets/WikiEdit/+/master/i18n/' + language + '.json?format=text', function ( data ) {
 			var json = WikiEdit.decodeBase64( data );
 			var messages = JSON.parse( json );
 			delete messages[ '@metadata' ];
