@@ -7,6 +7,6 @@
 	"wikiedit-form-save": "Save",
 	"wikiedit-form-cancel": "Cancel",
 	"wikiedit-form-minor": "Minor edit",
-	"wikiedit-summary-edit": "Content edited with [$1 #wikiedit]",
-	"wikiedit-summary-delete": "Content deleted with [$1 #wikiedit]"
+	"wikiedit-summary-edit": "Content edited with [[$1|#wikiedit]]",
+	"wikiedit-summary-delete": "Content deleted with [[$1|#wikiedit]]"
 }

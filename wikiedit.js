@@ -8,16 +8,16 @@
 window.WikiEdit = {
 
 	/**
+	 * Documentation page to link from the edit summaries
+	 * Wikis may customize this with mw.config.set( 'wikiedit-link', 'https://www.example.org' )
+	 */
+	page: 'mw:WikiEdit',
+
+	/**
 	 * Elements that match these selectors (within #mw-content-text) are elegible for editing
 	 * Wikis may customize this with mw.config.set( 'wikiedit-selectors', 'foo, bar, baz' )
 	 */
 	selectors: 'p, li, td, dd, .mw-headline',
-
-	/**
-	 * Documentation to link from the edit summaries
-	 * Wikis may customize this with mw.config.set( 'wikiedit-link', 'https://www.example.org' )
-	 */
-	link: 'https://www.mediawiki.org/wiki/WikiEdit',
 
 	/**
 	 * Initialization script
@@ -50,9 +50,9 @@ window.WikiEdit = {
 		if ( selectors ) {
 			WikiEdit.selectors = selectors;
 		}
-		var link = mw.config.get( 'wikiedit-link' );
-		if ( link ) {
-			WikiEdit.link = link;
+		var page = mw.config.get( 'wikiedit-page' );
+		if ( page ) {
+			WikiEdit.page = page;
 		}
 
 		WikiEdit.addEditButtons();
@@ -388,8 +388,8 @@ window.WikiEdit = {
 		if ( !wikitext ) {
 			action = 'delete';
 		}
-		var link = WikiEdit.link;
-		var summary = mw.message( 'wikiedit-summary-' + action, link ).text();
+		var page = WikiEdit.page;
+		var summary = mw.message( 'wikiedit-summary-' + action, page ).text();
 		var $section = WikiEdit.getSection( $element );
 		if ( $section ) {
 			var sectionText = $section.find( '.mw-headline' ).text();
