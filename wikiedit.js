@@ -7,8 +7,15 @@
  */
 window.WikiEdit = {
 
-	elements: 'p, li, dd, td',
+	/**
+	 * Elements that match these selectors (within #mw-content-text) are elegible for editing
+	 * Wikis may customize this with mw.config.set( 'wikiedit-selectors', 'foo, bar, baz' )
+	 */
+	selectors: 'p, li, td, dd, .mw-headline',
 
+	/**
+	 * Initialization script
+	 */
 	init: function () {
 
 		// Only init when viewing
@@ -32,6 +39,12 @@ window.WikiEdit = {
 			return;
 		}
 
+		// Give wikis control over which elements are editable
+		var selectors = mw.config.get( 'wikiedit-selectors' );
+		if ( selectors ) {
+			WikiEdit.selectors = selectors;
+		}
+
 		WikiEdit.addEditButtons();
 	},
 
@@ -39,9 +52,9 @@ window.WikiEdit = {
 	 * Add the edit buttons to the elements that are likely to be editable
 	 */
 	addEditButtons: function () {
-		var $elements = $( WikiEdit.elements, '#mw-content-text' );
+		var $elements = $( WikiEdit.selectors, '#mw-content-text' );
 
-		// Filter elements with no text node
+		// Filter elements with no text nodes
 		// @todo Make more efficient
 		$elements = $elements.filter( function () {
 			var $element = $( this );
@@ -60,10 +73,16 @@ window.WikiEdit = {
 		}
 	},
 
+	/**
+	 * Show edit button
+	 */
 	showEditButton: function () {
 		$( this ).find( '.wikiedit-button' ).first().show();
 	},
 
+	/**
+	 * Hide edit button
+	 */
 	hideEditButton: function () {
 		$( this ).find( '.wikiedit-button' ).first().hide();
 	},
@@ -98,7 +117,7 @@ window.WikiEdit = {
 	 */
 	addEditForm: function ( event ) {
 		var $button = $( event.target );
-		var $element = $button.closest( WikiEdit.elements );
+		var $element = $button.closest( WikiEdit.selectors );
 
 		// Load the page wikitext the first time this method is called
 		if ( !WikiEdit.pageWikitext ) {
@@ -164,6 +183,9 @@ window.WikiEdit = {
 		} );
 	},
 
+	/**
+	 * Handle form submission
+	 */
 	onSubmit: function ( event ) {
 		var $submit = $( this );
 		var $footer = $submit.closest( '.wikiedit-form-footer' );
@@ -187,10 +209,17 @@ window.WikiEdit = {
 		};
 		new mw.Api().postWithEditToken( params ).done( function () {
 			WikiEdit.onSuccess( $element, newWikitext );
-		} );
+		} ).fail( console.log );
 	},
 
+	/**
+	 * Callback on successful edits
+	 */
 	onSuccess: function ( $element, newWikitext ) {
+		if ( !newWikitext ) {
+			$element.remove();
+			return;
+		}
 		var params = {
 			'action': 'parse',
 			'title': mw.config.get( 'wgPageName' ),
@@ -204,7 +233,7 @@ window.WikiEdit = {
 			var text = data.parse.text;
 			var html = $( text ).html();
 			$element.html( html );
-		} );
+		} ).fail( console.log );
 	},
 
 	/**
@@ -221,7 +250,7 @@ window.WikiEdit = {
 		return new mw.Api().get( params ).done( function ( data ) {
 			var pageWikitext = data.parse.wikitext;
 			WikiEdit.pageWikitext = pageWikitext;
-		} );
+		} ).fail( console.log );
 	},
 
 	/**
@@ -235,7 +264,7 @@ window.WikiEdit = {
 			delete messages[ '@metadata' ];
 			mw.messages.set( messages );
 			WikiEdit.loadedMessages = true;
-		} );
+		} ).fail( console.log );
 	},
 
 	/**
@@ -248,7 +277,7 @@ window.WikiEdit = {
 			var $style = $( '<style>' ).html( css );
 			$( 'head' ).append( $style );
 			WikiEdit.loadedCSS = true;
-		} );
+		} ).fail( console.log );
 	},
 
 	/**
@@ -293,8 +322,8 @@ window.WikiEdit = {
 			return;
 		}
 
-		// If we reach this point, we got our relevant wikitext
-		// However, we'll try to clean it up a little
+		// If we reach this point, we got our relevant wikitext line
+		// To get to the relevant wikitext itself, we need to clean it up a little
 		wikitext = matches[0];
 
 		// Clean up list items
@@ -311,6 +340,9 @@ window.WikiEdit = {
 
 		// Clean up table cells and anonymous template parameters
 		wikitext = wikitext.replace( /^\| */, '' );
+
+		// Clean up section titles
+		wikitext = wikitext.replace( /^==+ *(.*?) *==+/, '$1' );
 
 		// In theory this should not happen
 		if ( !wikitext ) {
