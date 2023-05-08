@@ -9,13 +9,13 @@ window.WikiEdit = {
 
 	/**
 	 * Documentation page to link from the edit summaries
-	 * Wikis may customize this with mw.config.set( 'wikiedit-link', 'https://www.example.org' )
+	 * May be customized with mw.config.set( 'wikiedit-link', 'https://www.example.org' );
 	 */
 	page: 'mw:WikiEdit',
 
 	/**
 	 * Elements that match these selectors (within #mw-content-text) are elegible for editing
-	 * Wikis may customize this with mw.config.set( 'wikiedit-selectors', 'foo, bar, baz' )
+	 * May be customized with mw.config.set( 'wikiedit-selectors', 'foo, bar, baz' );
 	 */
 	selectors: 'p, li, td, dd, .mw-headline',
 
@@ -34,7 +34,7 @@ window.WikiEdit = {
 		// See https://www.mediawiki.org/wiki/Manual:Namespace_constants
 		var namespaces = [ 0, 2, 4, 12, 14 ];
 		var namespace = mw.config.get( 'wgNamespaceNumber' );
-		var talk = namespace % 2; // Talk pages always have odd namespaces
+		var talk = namespace % 2 === 1; // Talk pages always have odd namespaces
 		if ( !namespaces.includes( namespace ) && !talk ) {
 			return;
 		}
@@ -142,23 +142,33 @@ window.WikiEdit = {
 		if ( !wikitext ) {
 			var $section = WikiEdit.getSection( $element );
 			var sectionNumber = $section ? 1 + $section.prevAll( ':header' ).length : 0;
-			var edit = mw.util.getUrl( null, {
-				action: 'edit',
-				section: sectionNumber
-			} );
-			window.location.href = edit;
+			var editUrl = mw.util.getUrl( null, { action: 'edit', section: sectionNumber } );
+			window.location.href = editUrl;
 			return;
 		}
 
-		// Load the necessary CSS and messages the first time we reach this point
+		// Load the dependencies the first time we reach this point
+		// Note that if any of the requests fails for whatever reason
+		// we continue anyway because they are not hard dependencies
+		// Also, we don't use $.when because loadMessages() needs to resolve BEFORE loadTranslations()
 		if ( !WikiEdit.loadedCSS ) {
-			WikiEdit.loadCSS().done( function () {
+			WikiEdit.loadCSS().always( function () {
+				WikiEdit.loadedCSS = true;
 				WikiEdit.addEditForm( event );
 			} );
 			return;
 		}
 		if ( !WikiEdit.loadedMessages ) {
-			WikiEdit.loadMessages().done( function () {
+			WikiEdit.loadMessages().always( function () {
+				WikiEdit.loadedMessages = true;
+				WikiEdit.addEditForm( event );
+			} );
+			return;
+		}
+		var language = mw.config.get( 'wgContentLanguage' );
+		if ( !WikiEdit.loadedTranslations && language !== 'en' ) {
+			WikiEdit.loadTranslations().always( function () {
+				WikiEdit.loadedTranslations = true;
 				WikiEdit.addEditForm( event );
 			} );
 			return;
@@ -219,7 +229,7 @@ window.WikiEdit = {
 		};
 		new mw.Api().postWithEditToken( params ).done( function () {
 			WikiEdit.onSuccess( $element, newWikitext );
-		} ).fail( console.log );
+		} );
 	},
 
 	/**
@@ -243,13 +253,13 @@ window.WikiEdit = {
 			var text = data.parse.text;
 			var html = $( text ).html();
 			$element.html( html );
-		} ).fail( console.log );
+		} );
 	},
 
 	/**
 	 * Load the wikitext of the current page
 	 */
-	pageWikitext: '', // Will hold the wikitext
+	pageWikitext: '',
 	loadPageWikitext: function () {
 		var params = {
 			'page': mw.config.get( 'wgPageName' ),
@@ -260,36 +270,52 @@ window.WikiEdit = {
 		return new mw.Api().get( params ).done( function ( data ) {
 			var pageWikitext = data.parse.wikitext;
 			WikiEdit.pageWikitext = pageWikitext;
-		} ).fail( console.log );
+		} );
 	},
 
 	/**
-	 * Load interface messages directly from the Wikimedia repository
-	 * @todo Proper support for other languages
+	 * Load CSS from the Wikimedia repository and add it to the DOM
 	 */
-	loadedMessages: false, // Tracking flag
+	loadedCSS: false,
+	loadCSS: function () {
+		return $.get( '//gerrit.wikimedia.org/r/plugins/gitiles/mediawiki/gadgets/WikiEdit/+/master/wikiedit.css?format=text', function ( data ) {
+			var css = atob( data );
+			var $style = $( '<style>' ).html( css );
+			$( 'head' ).append( $style );
+		} );
+	},
+
+	/**
+	 * Load English messages from the Wikimedia repository
+	 *
+	 * English messages are always loaded as a fallback
+	 * in case we don't have translated messages
+	 */
+	loadedMessages: false,
 	loadMessages: function () {
+		return $.get( '//gerrit.wikimedia.org/r/plugins/gitiles/mediawiki/gadgets/WikiEdit/+/master/i18n/en.json?format=text', function ( data ) {
+			var json = WikiEdit.decodeBase64( data );
+			var messages = JSON.parse( json );
+			delete messages[ '@metadata' ];
+			mw.messages.set( messages );
+		} );
+	},
+
+	/**
+	 * Load translated messages from the Wikimedia repository
+	 *
+	 * We use the content language rather than the preferred language of the user
+	 * because the edit summaries must be in the content language
+	 */
+	loadedTranslations: false,
+	loadTranslations: function () {
 		var language = mw.config.get( 'wgContentLanguage' );
 		return $.get( '//gerrit.wikimedia.org/r/plugins/gitiles/mediawiki/gadgets/WikiEdit/+/master/i18n/' + language + '.json?format=text', function ( data ) {
 			var json = WikiEdit.decodeBase64( data );
 			var messages = JSON.parse( json );
 			delete messages[ '@metadata' ];
 			mw.messages.set( messages );
-			WikiEdit.loadedMessages = true;
-		} ).fail( console.log );
-	},
-
-	/**
-	 * Load CSS directly from the Wikimedia repository and add it to the DOM
-	 */
-	loadedCSS: false, // Tracking flag
-	loadCSS: function () {
-		return $.get( '//gerrit.wikimedia.org/r/plugins/gitiles/mediawiki/gadgets/WikiEdit/+/master/wikiedit.css?format=text', function ( data ) {
-			var css = atob( data );
-			var $style = $( '<style>' ).html( css );
-			$( 'head' ).append( $style );
-			WikiEdit.loadedCSS = true;
-		} ).fail( console.log );
+		} );
 	},
 
 	/**
