@@ -210,7 +210,7 @@ window.WikiEdit = {
 		var $submit = $( this );
 		var $footer = $submit.closest( '.wikiedit-form-footer' );
 		var $form = $submit.closest( '.wikiedit-form' );
-		var saving = mw.message( 'wikiedit-saving' ).text();
+		var saving = mw.message( 'wikiedit-form-saving' ).text();
 		$footer.text( saving );
 		var $element = event.data.element;
 		var oldWikitext = event.data.wikitext;
