@@ -210,7 +210,8 @@ window.WikiEdit = {
 		var $submit = $( this );
 		var $footer = $submit.closest( '.wikiedit-form-footer' );
 		var $form = $submit.closest( '.wikiedit-form' );
-		$footer.text( 'Saving...' );
+		var saving = mw.message( 'wikiedit-saving' ).text();
+		$footer.text( saving );
 		var $element = event.data.element;
 		var oldWikitext = event.data.wikitext;
 		var newWikitext = $form.find( '.wikiedit-form-input' ).prop( 'innerText' ); // jQuery's text() removes line breaks
