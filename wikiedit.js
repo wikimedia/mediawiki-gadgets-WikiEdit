@@ -165,7 +165,7 @@ window.WikiEdit = {
 			} );
 			return;
 		}
-		var language = mw.config.get( 'wgContentLanguage' );
+		var language = mw.config.get( 'wgPageContentLanguage' );
 		if ( !WikiEdit.loadedTranslations && language !== 'en' ) {
 			WikiEdit.loadTranslations().always( function () {
 				WikiEdit.loadedTranslations = true;
@@ -304,12 +304,12 @@ window.WikiEdit = {
 	/**
 	 * Load translated messages from the Wikimedia repository
 	 *
-	 * We use the content language rather than the preferred language of the user
-	 * because the edit summaries must be in the content language
+	 * We use the page language rather than the user language
+	 * because the edit summaries must be in the page language
 	 */
 	loadedTranslations: false,
 	loadTranslations: function () {
-		var language = mw.config.get( 'wgContentLanguage' );
+		var language = mw.config.get( 'wgPageContentLanguage' );
 		return $.get( '//gerrit.wikimedia.org/r/plugins/gitiles/mediawiki/gadgets/WikiEdit/+/master/i18n/' + language + '.json?format=text', function ( data ) {
 			var json = WikiEdit.decodeBase64( data );
 			var messages = JSON.parse( json );
