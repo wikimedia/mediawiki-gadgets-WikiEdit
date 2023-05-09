@@ -8,18 +8,6 @@
 window.WikiEdit = {
 
 	/**
-	 * Documentation page to link from the edit summaries
-	 * May be customized with mw.config.set( 'wikiedit-link', 'https://www.example.org' );
-	 */
-	page: 'mw:WikiEdit',
-
-	/**
-	 * Elements that match these selectors (within #mw-content-text) are elegible for editing
-	 * May be customized with mw.config.set( 'wikiedit-selectors', 'foo, bar, baz' );
-	 */
-	selectors: 'p, li, td, dd, .mw-headline',
-
-	/**
 	 * Initialization script
 	 */
 	init: function () {
@@ -31,7 +19,6 @@ window.WikiEdit = {
 		}
 
 		// Only init in useful namespaces
-		// See https://www.mediawiki.org/wiki/Manual:Namespace_constants
 		var namespaces = [ 0, 2, 4, 12, 14 ];
 		var namespace = mw.config.get( 'wgNamespaceNumber' );
 		var talk = namespace % 2 === 1; // Talk pages always have odd namespaces
@@ -45,24 +32,14 @@ window.WikiEdit = {
 			return;
 		}
 
-		// Give priority to local config
-		var selectors = mw.config.get( 'wikiedit-selectors' );
-		if ( selectors ) {
-			WikiEdit.selectors = selectors;
-		}
-		var page = mw.config.get( 'wikiedit-page' );
-		if ( page ) {
-			WikiEdit.page = page;
-		}
-
 		WikiEdit.addEditButtons();
 	},
 
 	/**
-	 * Add the edit buttons to the elements that are likely to be editable
+	 * Add the edit buttons to the elements that are elegible for editing
 	 */
 	addEditButtons: function () {
-		var $elements = $( WikiEdit.selectors, '#mw-content-text' );
+		var $elements = $( 'p, li, td, dd, .thumbcaption', '#mw-content-text' );
 
 		// Filter elements with no text nodes
 		// @todo Make more efficient
@@ -127,7 +104,7 @@ window.WikiEdit = {
 	 */
 	addEditForm: function ( event ) {
 		var $button = $( event.target );
-		var $element = $button.closest( WikiEdit.selectors );
+		var $element = $button.closest( '.wikiedit-button' ).parent();
 
 		// Load the page wikitext the first time this method is called
 		if ( !WikiEdit.pageWikitext ) {
@@ -226,7 +203,8 @@ window.WikiEdit = {
 			'action': 'edit',
 			'title': mw.config.get( 'wgPageName' ),
 			'text': WikiEdit.pageWikitext,
-			'summary': WikiEdit.makeSummary( newWikitext, $element )
+			'summary': WikiEdit.makeSummary( newWikitext, $element ),
+			'tags': mw.config.get( 'wikiedit-tag' )
 		};
 		new mw.Api().postWithEditToken( params ).done( function () {
 			WikiEdit.onSuccess( $element, newWikitext );
@@ -417,14 +395,14 @@ window.WikiEdit = {
 		if ( !wikitext ) {
 			action = 'delete';
 		}
-		var page = WikiEdit.page;
+		var page = mw.config.get( 'wikiedit-page', 'mw:WikiEdit' );
 		var summary = mw.message( 'wikiedit-summary-' + action, page ).text();
 		var $section = WikiEdit.getSection( $element );
 		if ( $section ) {
-			var sectionText = $section.find( '.mw-headline' ).text();
-			summary = '/* ' + sectionText + ' */ ' + summary;
+			var section = $section.find( '.mw-headline' ).attr( 'id' ).replaceAll( '_', ' ' );
+			summary = '/* ' + section + ' */ ' + summary;
 		}
-		summary += ' #wikiedit'; // See https://hashtags.wmcloud.org
+		summary += ' #wikiedit'; // For https://hashtags.wmcloud.org
 		return summary;
 	},
 
