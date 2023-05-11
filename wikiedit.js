@@ -90,9 +90,10 @@ window.WikiEdit = {
 		var $button = $( this ).closest( '.wikiedit-button' );
 		var $element = $button.parent();
 
-		// Signal that something is happening
-		$button.remove();
-		$( 'body' ).css( 'cursor', 'wait' );
+		// Replace the button for a spinner
+		// to prevent further clicks and to signal the user that something's happening
+		$spinner = WikiEdit.getSpinner();
+		$button.replaceWith( $spinner );
 
 		WikiEdit.addEditForm( $element );
 	},
@@ -161,6 +162,7 @@ window.WikiEdit = {
 
 		// Save the original element in case we need to restore it
 		var $original = $element.clone( true );
+		$original.find( '.wikiedit-spinner' ).remove();
 		$original.each( WikiEdit.addEditButton );
 
 		// Add to the DOM
@@ -421,6 +423,29 @@ window.WikiEdit = {
 		}
 		var $parent = $element.parent();
 		return WikiEdit.getSection( $parent );
+	},
+
+	/**
+	 * Helper method to get a spinner (loading) icon
+	 */
+	 getSpinner: function () {
+		var spinner = '<svg class="wikiedit-spinner" width="14" height="14" viewBox="0 0 100 100">';
+		spinner += '<rect fill="#555555" height="10" rx="5" ry="5" width="28" x="67" y="45" transform="rotate(-90 50 50)" opacity="0" />';
+		spinner += '<rect fill="#555555" height="10" rx="5" ry="5" width="28" x="67" y="45" transform="rotate(-45 50 50)" opacity="0.125" />';
+		spinner += '<rect fill="#555555" height="10" rx="5" ry="5" width="28" x="67" y="45" transform="rotate(0 50 50)" opacity="0.25" />';
+		spinner += '<rect fill="#555555" height="10" rx="5" ry="5" width="28" x="67" y="45" transform="rotate(45 50 50)" opacity="0.375" />';
+		spinner += '<rect fill="#555555" height="10" rx="5" ry="5" width="28" x="67" y="45" transform="rotate(90 50 50)" opacity="0.5" />';
+		spinner += '<rect fill="#555555" height="10" rx="5" ry="5" width="28" x="67" y="45" transform="rotate(135 50 50)" opacity="0.625" />';
+		spinner += '<rect fill="#555555" height="10" rx="5" ry="5" width="28" x="67" y="45" transform="rotate(180 50 50)" opacity="0.75" />';
+		spinner += '<rect fill="#555555" height="10" rx="5" ry="5" width="28" x="67" y="45" transform="rotate(225 50 50)" opacity="0.875" />';
+		spinner += '</svg>';
+		var $spinner = $( spinner );
+		var degrees = 0;
+		setInterval( function () {
+			degrees += 45;
+			$spinner.css( 'transform', 'rotate(' + degrees + 'deg)' );
+		}, 100 );
+		return $spinner;
 	},
 
 	/**
