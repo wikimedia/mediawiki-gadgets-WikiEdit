@@ -48,30 +48,7 @@ window.WikiEdit = {
 			return WikiEdit.getLongestText( $element );
 		} );
 
-		// The behavior of the buttons is different in Minerva
-		// because on mobile devices there's no hover event
-		if ( mw.config.get( 'skin' ) === 'minerva' ) {
-			$elements.each( WikiEdit.addEditButton );
-			$elements.each( WikiEdit.showEditButton );
-		} else {
-			$elements.each( WikiEdit.addEditButton );
-			$elements.on( 'mouseenter', WikiEdit.showEditButton );
-			$elements.on( 'mouseleave', WikiEdit.hideEditButton );
-		}
-	},
-
-	/**
-	 * Show edit button
-	 */
-	showEditButton: function () {
-		$( this ).find( '.wikiedit-button' ).first().show();
-	},
-
-	/**
-	 * Hide edit button
-	 */
-	hideEditButton: function () {
-		$( this ).find( '.wikiedit-button' ).first().hide();
+		$elements.each( WikiEdit.addEditButton );
 	},
 
 	/**
@@ -83,8 +60,15 @@ window.WikiEdit = {
 		// Make the button
 		var path = '<path fill="currentColor" d="M16.77 8l1.94-2a1 1 0 0 0 0-1.41l-3.34-3.3a1 1 0 0 0-1.41 0L12 3.23zm-5.81-3.71L1 14.25V19h4.75l9.96-9.96-4.75-4.75z"></path>';
 		var icon = '<svg width="14" height="14" viewBox="0 0 20 20">' + path + '</svg>';
-		var $button = $( '<span hidden class="wikiedit-button noprint">' + icon + '</span>' );
-		$button.on( 'click', WikiEdit.addEditForm );
+		var $button = $( '<span class="wikiedit-button noprint">' + icon + '</span>' );
+		$button.on( 'click', WikiEdit.onEditButtonClick );
+
+		// On mobile devices there's no hover event so we just omit this part
+		if ( mw.config.get( 'skin' ) !== 'minerva' ) {
+			$button.hide();
+			$element.on( 'mouseenter', function () { $button.show(); } );
+			$element.on( 'mouseleave', function () { $button.hide(); } );
+		}
 
 		// Add a little CSS from here to delay loading the full CSS until the user actually clicks
 		$button.css( { 'color': '#a2a9b1', 'cursor': 'pointer' } );
@@ -100,22 +84,35 @@ window.WikiEdit = {
 	},
 
 	/**
+	 * Handle click on edit button
+	 */
+	onEditButtonClick: function () {
+		var $button = $( this ).closest( '.wikiedit-button' );
+		var $element = $button.parent();
+
+		// Signal that something is happening
+		$button.remove();
+		$( 'body' ).css( 'cursor', 'wait' );
+
+		WikiEdit.addEditForm( $element );
+	},
+
+	/**
 	 * Add edit form
 	 */
-	addEditForm: function ( event ) {
-		var $button = $( event.target );
-		var $element = $button.closest( '.wikiedit-button' ).parent();
+	addEditForm: function ( $element ) {
 
 		// Load the page wikitext the first time this method is called
 		if ( !WikiEdit.pageWikitext ) {
-			WikiEdit.loadPageWikitext().done( function () {
-				WikiEdit.addEditForm( event );
+			WikiEdit.getPageWikitext().done( function ( data ) {
+				WikiEdit.pageWikitext = data.parse.wikitext;
+				WikiEdit.addEditForm( $element );
 			} );
 			return;
 		}
 
-		// If no relevant wikitext is found, fallback to regular edit
-		var wikitext = WikiEdit.getRelevantWikitext( $element );
+		// If no relevant wikitext for the element is found, fallback to regular edit
+		var wikitext = WikiEdit.getElementWikitext( $element );
 		if ( !wikitext ) {
 			var $section = WikiEdit.getSection( $element );
 			var sectionNumber = $section ? 1 + $section.prevAll( ':header' ).length : 0;
@@ -128,25 +125,25 @@ window.WikiEdit = {
 		// Note that if any of the requests fails for whatever reason
 		// we continue anyway because they are not hard dependencies
 		// Also, we don't use $.when because loadMessages() needs to resolve BEFORE loadTranslations()
-		if ( !WikiEdit.loadedCSS ) {
-			WikiEdit.loadCSS().always( function () {
-				WikiEdit.loadedCSS = true;
-				WikiEdit.addEditForm( event );
+		if ( !WikiEdit.css ) {
+			WikiEdit.getCSS().always( function () {
+				WikiEdit.css = true;
+				WikiEdit.addEditForm( $element );
 			} );
 			return;
 		}
-		if ( !WikiEdit.loadedMessages ) {
-			WikiEdit.loadMessages().always( function () {
-				WikiEdit.loadedMessages = true;
-				WikiEdit.addEditForm( event );
+		if ( !WikiEdit.messages ) {
+			WikiEdit.getMessages().always( function () {
+				WikiEdit.messages = true;
+				WikiEdit.addEditForm( $element );
 			} );
 			return;
 		}
 		var language = mw.config.get( 'wgPageContentLanguage' );
-		if ( !WikiEdit.loadedTranslations && language !== 'en' ) {
-			WikiEdit.loadTranslations().always( function () {
-				WikiEdit.loadedTranslations = true;
-				WikiEdit.addEditForm( event );
+		if ( !WikiEdit.translations && language !== 'en' ) {
+			WikiEdit.getTranslations().always( function () {
+				WikiEdit.translations = true;
+				WikiEdit.addEditForm( $element );
 			} );
 			return;
 		}
@@ -162,10 +159,19 @@ window.WikiEdit = {
 		$footer.append( $submit, $cancel );
 		$form.append( $input, $footer );
 
+		// Save the original element in case we need to restore it
+		var $original = $element.clone( true );
+		$original.each( WikiEdit.addEditButton );
+
 		// Add to the DOM
-		var $original = $element.clone( true ); // Save it for later
 		$element.html( $form );
 		$input.focus();
+		$( 'body' ).css( 'cursor', 'auto' );
+
+		// Handle the cancel
+		$cancel.on( 'click', function () {
+			$element.replaceWith( $original );
+		} );
 
 		// Handle the submit
 		$submit.on( 'click', {
@@ -173,11 +179,6 @@ window.WikiEdit = {
 			'original': $original,
 			'wikitext': wikitext
 		}, WikiEdit.onSubmit );
-
-		// Handle the cancel
-		$cancel.on( 'click', function () {
-			$element.replaceWith( $original );
-		} );
 	},
 
 	/**
@@ -232,31 +233,27 @@ window.WikiEdit = {
 			var text = data.parse.text;
 			var html = $( text ).html();
 			$element.html( html );
+			$element.each( WikiEdit.addEditButton );
 		} );
 	},
 
 	/**
 	 * Load the wikitext of the current page
 	 */
-	pageWikitext: '',
-	loadPageWikitext: function () {
+	getPageWikitext: function () {
 		var params = {
 			'page': mw.config.get( 'wgPageName' ),
 			'action': 'parse',
 			'prop': 'wikitext',
 			'formatversion': 2,
 		};
-		return new mw.Api().get( params ).done( function ( data ) {
-			var pageWikitext = data.parse.wikitext;
-			WikiEdit.pageWikitext = pageWikitext;
-		} );
+		return new mw.Api().get( params );
 	},
 
 	/**
-	 * Load CSS from the Wikimedia repository and add it to the DOM
+	 * Get the CSS from the Wikimedia repository and add it to the DOM
 	 */
-	loadedCSS: false,
-	loadCSS: function () {
+	getCSS: function () {
 		return $.get( '//gerrit.wikimedia.org/r/plugins/gitiles/mediawiki/gadgets/WikiEdit/+/master/wikiedit.css?format=text', function ( data ) {
 			var css = atob( data );
 			var $style = $( '<style>' ).html( css );
@@ -265,13 +262,12 @@ window.WikiEdit = {
 	},
 
 	/**
-	 * Load English messages from the Wikimedia repository
+	 * Get the English messages from the Wikimedia repository
 	 *
 	 * English messages are always loaded as a fallback
 	 * in case we don't have translated messages
 	 */
-	loadedMessages: false,
-	loadMessages: function () {
+	getMessages: function () {
 		return $.get( '//gerrit.wikimedia.org/r/plugins/gitiles/mediawiki/gadgets/WikiEdit/+/master/i18n/en.json?format=text', function ( data ) {
 			var json = WikiEdit.decodeBase64( data );
 			var messages = JSON.parse( json );
@@ -281,13 +277,12 @@ window.WikiEdit = {
 	},
 
 	/**
-	 * Load translated messages from the Wikimedia repository
+	 * Get the translated messages from the Wikimedia repository
 	 *
 	 * We use the page language rather than the user language
 	 * because the edit summaries must be in the page language
 	 */
-	loadedTranslations: false,
-	loadTranslations: function () {
+	getTranslations: function () {
 		var language = mw.config.get( 'wgPageContentLanguage' );
 		return $.get( '//gerrit.wikimedia.org/r/plugins/gitiles/mediawiki/gadgets/WikiEdit/+/master/i18n/' + language + '.json?format=text', function ( data ) {
 			var json = WikiEdit.decodeBase64( data );
@@ -311,7 +306,7 @@ window.WikiEdit = {
 	 * @param {jQuery object} jQuery object representing the DOM element being edited
 	 * @return {string|null} Wikitext of the element being edited, or null if it can't be found
 	 */
-	getRelevantWikitext: function ( $element ) {
+	getElementWikitext: function ( $element ) {
 		var wikitext;
 
 		// Get the text of longest text node
