@@ -211,9 +211,13 @@ window.WikiEdit = {
 			return;
 		}
 
-		// If content was deleted, add a trailing newline to avoid double newlines in the resulting wikitext
+		// If line breaks were added, remove excessive ones
+		newWikitext = newWikitext.replace( /\n\n\n+/g, '\n\n' );
+
+		// If content was deleted, remove also any trailing newlines
 		if ( !newWikitext ) {
-			oldWikitext += '\n';
+			oldWikitext = oldWikitext.replace( /[.*+?^${}()|[\]\\]/g, '\\$&' ); // Escape special characters
+			oldWikitext = new RegExp( oldWikitext + '\n+' );
 		}
 
 		WikiEdit.pageWikitext = WikiEdit.pageWikitext.replace( oldWikitext, newWikitext );
@@ -249,9 +253,9 @@ window.WikiEdit = {
 		};
 		new mw.Api().get( params ).done( function ( data ) {
 			var text = data.parse.text;
-			var html = $( text ).html();
-			$element.html( html );
-			$element.each( WikiEdit.addEditButton );
+			var $html = $( text );
+			$element.replaceWith( $html );
+			$html.each( WikiEdit.addEditButton );
 		} );
 	},
 
