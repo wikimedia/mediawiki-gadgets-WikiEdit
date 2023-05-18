@@ -40,12 +40,11 @@ window.WikiEdit = {
 	 * Add the edit buttons to the elements that are elegible for editing
 	 */
 	addEditButtons: function () {
-		var selectors = mw.config.get( 'wikiedit-selectors', [ 'p', 'li', 'dd' ] );
-		selectors = selectors.toString();
-		var $elements = $( selectors, '#mw-content-text' );
+		// @todo Fully support li and dd
+		var $elements = $( 'p', '#mw-content-text' );
 
 		// Filter elements with no text nodes
-		// @todo Make more efficient
+		// This happens often with list items made up of just a link
 		$elements = $elements.filter( function () {
 			var $element = $( this );
 			return WikiEdit.getLongestText( $element );
@@ -66,7 +65,8 @@ window.WikiEdit = {
 		var $button = $( '<span class="wikiedit-button noprint">' + icon + '</span>' );
 		$button.on( 'click', WikiEdit.onEditButtonClick );
 
-		// On mobile devices there's no hover event so we just omit this part
+		// On mobile devices there's no hover event
+		// so we just omit this part and show the button always
 		if ( mw.config.get( 'skin' ) !== 'minerva' ) {
 			$button.hide();
 			$element.on( 'mouseenter', function () { $button.show(); } );
@@ -197,8 +197,8 @@ window.WikiEdit = {
 		var $form = $submit.closest( '.wikiedit-form' );
 		var minor = $footer.find( 'input[name="minor"]' ).prop( 'checked' );
 
-		// Let the user know something is happening
-		// and prevent further clicks
+		// Replace the footer with a saving message
+		// to prevent further clicks and to signal the user that something's happening
 		var saving = mw.msg( 'wikiedit-form-saving' );
 		$footer.text( saving );
 
@@ -348,26 +348,10 @@ window.WikiEdit = {
 		}
 
 		// If we reach this point, we got our relevant wikitext line
-		// To get to the relevant wikitext itself, we need to clean it up a little
 		wikitext = matches[0];
 
-		// Clean up list items
+		// In the case of lists, we need to clean up a little
 		wikitext = wikitext.replace( /^[*#:]+ */, '' );
-
-		// Clean up template parameters
-		wikitext = wikitext.replace( /^\|.*= */, '' );
-
-		// Clean up table captions
-		wikitext = wikitext.replace( /^\|\+ */, '' );
-
-		// Clean up table headers
-		wikitext = wikitext.replace( /^! */, '' );
-
-		// Clean up table cells and anonymous template parameters
-		wikitext = wikitext.replace( /^\| */, '' );
-
-		// Clean up section titles
-		wikitext = wikitext.replace( /^==+ *(.*?) *==+/, '$1' );
 
 		// In theory this should not happen
 		if ( !wikitext ) {
