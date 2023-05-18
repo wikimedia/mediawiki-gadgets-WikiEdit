@@ -5,6 +5,7 @@
  * License: GNU General Public License 3 or later (http://www.gnu.org/licenses/gpl-3.0.html)
  * Author: Felipe Schenone (User:Sophivorus)
  */
+/* global WikiEdit, mw, OO, $, atob */
 window.WikiEdit = {
 
 	/**
@@ -39,7 +40,9 @@ window.WikiEdit = {
 	 * Add the edit buttons to the elements that are elegible for editing
 	 */
 	addEditButtons: function () {
-		var $elements = $( 'p, li, td, dd, .thumbcaption', '#mw-content-text' );
+		var selectors = mw.config.get( 'wikiedit-selectors', [ 'p', 'li', 'dd' ] );
+		selectors = selectors.toString();
+		var $elements = $( selectors, '#mw-content-text' );
 
 		// Filter elements with no text nodes
 		// @todo Make more efficient
@@ -92,7 +95,7 @@ window.WikiEdit = {
 
 		// Replace the button for a spinner
 		// to prevent further clicks and to signal the user that something's happening
-		$spinner = WikiEdit.getSpinner();
+		var $spinner = WikiEdit.getSpinner();
 		$button.replaceWith( $spinner );
 
 		WikiEdit.addEditForm( $element );
@@ -150,14 +153,16 @@ window.WikiEdit = {
 		}
 
 		// Make the form
-		var save = mw.message( 'wikiedit-form-save' ).text();
-		var cancel = mw.message( 'wikiedit-form-cancel' ).text();
 		var $form = $( '<div class="wikiedit-form"></div>' );
 		var $input = $( '<div class="wikiedit-form-input" contenteditable="true"></div>' ).text( wikitext );
 		var $footer = $( '<div class="wikiedit-form-footer"></div>' );
-		var $submit = $( '<button class="wikiedit-form-submit mw-ui-button mw-ui-progressive">' + save + '</button>' );
-		var $cancel = $( '<button class="wikiedit-form-cancel mw-ui-button">' + cancel + '</button>' );
-		$footer.append( $submit, $cancel );
+		var save = new OO.ui.ButtonInputWidget( { label: mw.msg( 'wikiedit-form-save' ), flags: [ 'primary', 'progressive' ] } );
+		var cancel = new OO.ui.ButtonInputWidget( { label: mw.msg( 'wikiedit-form-cancel' ) } );
+		var checkbox = new OO.ui.CheckboxInputWidget( { name: 'minor' } );
+	    var minor = new OO.ui.FieldLayout( checkbox, { label: mw.msg( 'wikiedit-form-minor' ), align: 'inline' } );
+	    var layout = new OO.ui.HorizontalLayout();
+		layout.addItems( [ save, cancel, minor ] );
+		$footer.append( layout.$element );
 		$form.append( $input, $footer );
 
 		// Save the original element in case we need to restore it
@@ -171,12 +176,12 @@ window.WikiEdit = {
 		$( 'body' ).css( 'cursor', 'auto' );
 
 		// Handle the cancel
-		$cancel.on( 'click', function () {
+		cancel.$element.on( 'click', function () {
 			$element.replaceWith( $original );
 		} );
 
 		// Handle the submit
-		$submit.on( 'click', {
+		save.$element.on( 'click', {
 			'element': $element,
 			'original': $original,
 			'wikitext': wikitext
@@ -190,8 +195,13 @@ window.WikiEdit = {
 		var $submit = $( this );
 		var $footer = $submit.closest( '.wikiedit-form-footer' );
 		var $form = $submit.closest( '.wikiedit-form' );
-		var saving = mw.message( 'wikiedit-form-saving' ).text();
+		var minor = $footer.find( 'input[name="minor"]' ).prop( 'checked' );
+
+		// Let the user know something is happening
+		// and prevent further clicks
+		var saving = mw.msg( 'wikiedit-form-saving' );
 		$footer.text( saving );
+
 		var $element = event.data.element;
 		var oldWikitext = event.data.wikitext;
 		var newWikitext = $form.find( '.wikiedit-form-input' ).prop( 'innerText' ); // jQuery's text() removes line breaks
@@ -206,6 +216,7 @@ window.WikiEdit = {
 			'action': 'edit',
 			'title': mw.config.get( 'wgPageName' ),
 			'text': WikiEdit.pageWikitext,
+			'minor': minor,
 			'summary': WikiEdit.makeSummary( newWikitext, $element ),
 			'tags': mw.config.get( 'wikiedit-tag' )
 		};
@@ -373,7 +384,7 @@ window.WikiEdit = {
 	getLongestText: function ( $element ) {
 		var text = '';
 		var $textNodes = $element.contents().filter( function () {
-			return this.nodeType === Node.TEXT_NODE;
+			return this.nodeType === 3; // Text node
 		} );
 		$textNodes.each( function () {
 			var nodeText = $( this ).text().trim();
@@ -393,7 +404,7 @@ window.WikiEdit = {
 			action = 'delete';
 		}
 		var page = mw.config.get( 'wikiedit-page', 'mw:WikiEdit' );
-		var summary = mw.message( 'wikiedit-summary-' + action, page ).text();
+		var summary = mw.msg( 'wikiedit-summary-' + action, page );
 		var $section = WikiEdit.getSection( $element );
 		if ( $section ) {
 			var section = $section.find( '.mw-headline' ).attr( 'id' ).replaceAll( '_', ' ' );

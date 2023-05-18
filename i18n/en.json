@@ -8,7 +8,6 @@
 	"wikiedit-form-cancel": "Cancel",
 	"wikiedit-form-minor": "Minor edit",
 	"wikiedit-form-saving": "Saving...",
-	"wikiedit-form-loading": "Loading...",
 	"wikiedit-summary-edit": "Content edited with [[$1|WikiEdit]]",
 	"wikiedit-summary-delete": "Content deleted with [[$1|WikiEdit]]"
 }

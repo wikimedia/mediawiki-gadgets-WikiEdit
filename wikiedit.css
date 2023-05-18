@@ -1,11 +1,6 @@
 .wikiedit-form-input {
 	font-family: monospace;
 	overflow: hidden;
+	margin-bottom: .2em;
 	padding: .2em;
-}
-.wikiedit-form-footer {
-	margin: .2em 0;
-}
-.wikiedit-form-submit {
-	margin-right: .2em;
 }
