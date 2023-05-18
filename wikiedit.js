@@ -211,6 +211,11 @@ window.WikiEdit = {
 			return;
 		}
 
+		// If content was deleted, add a trailing newline to avoid double newlines in the resulting wikitext
+		if ( !newWikitext ) {
+			oldWikitext += '\n';
+		}
+
 		WikiEdit.pageWikitext = WikiEdit.pageWikitext.replace( oldWikitext, newWikitext );
 		var params = {
 			'action': 'edit',
