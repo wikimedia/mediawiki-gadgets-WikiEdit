@@ -473,4 +473,7 @@ window.WikiEdit = {
 	}
 };
 
-$( WikiEdit.init );
+mw.loader.using( [
+	'oojs-ui-core',
+	'oojs-ui-widgets'
+], WikiEdit.init );
