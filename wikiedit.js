@@ -38,8 +38,13 @@ window.WikiEdit = {
 			return;
 		}
 
-		// We need to be quite specific to reduce the chances of matching paragraphs that come from templates
-		$( '#mw-content-text > .mw-parser-output > p' ).each( WikiEdit.addEditButton );
+		// Select only paragraphs that are direct children
+		// to reduce the chances of matching paragraphs that come from templates
+		var selector = '#mw-content-text > .mw-parser-output > p';
+		if ( mw.config.get( 'skin' ) === 'minerva' ) {
+			selector = '#mw-content-text > .mw-parser-output > section > p';
+		}
+		$( selector ).each( WikiEdit.addEditButton );
 	},
 
 	/**
