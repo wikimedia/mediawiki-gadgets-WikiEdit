@@ -220,6 +220,7 @@ window.WikiEdit = {
 			var text = data.parse.text;
 			var $html = $( text );
 			$paragraph.replaceWith( $html );
+			$html.filter( '.references' ).hide();
 			$html.each( WikiEdit.addEditButton );
 		} );
 	},
