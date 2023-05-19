@@ -9,6 +9,11 @@
 window.WikiEdit = {
 
 	/**
+	 * Will hold the wikitext of the current page
+	 */
+	pageWikitext: '',
+
+	/**
 	 * Initialization script
 	 */
 	init: function () {
@@ -40,10 +45,10 @@ window.WikiEdit = {
 	 * Add the edit buttons to the elements that are elegible for editing
 	 */
 	addEditButtons: function () {
-		// @todo Fully support li and dd
+		// @todo Support lists and replies
 		var $elements = $( 'p', '#mw-content-text' );
 
-		// Filter elements with no text nodes
+		// Filter elements with no text nodes as they will not be editable
 		// This happens often with list items made up of just a link
 		$elements = $elements.filter( function () {
 			var $element = $( this );
@@ -73,7 +78,7 @@ window.WikiEdit = {
 			$element.on( 'mouseleave', function () { $button.hide(); } );
 		}
 
-		// Add a little CSS from here to delay loading the full CSS until the user actually clicks
+		// Add a little CSS here to delay loading the full CSS until the user actually clicks something
 		$button.css( { 'color': '#a2a9b1', 'cursor': 'pointer' } );
 		$button.on( 'mouseenter', function () { $( this ).css( 'color', '#202122' ); } );
 		$button.on( 'mouseleave', function () { $( this ).css( 'color', '#a2a9b1' ); } );
@@ -87,34 +92,47 @@ window.WikiEdit = {
 	},
 
 	/**
-	 * Handle click on edit button
+	 * Handle clicks on edit buttons
 	 */
 	onEditButtonClick: function () {
 		var $button = $( this ).closest( '.wikiedit-button' );
 		var $element = $button.parent();
 
-		// Replace the button for a spinner
+		// Save the original element in case we need to restore it later
+		// However, for some reason the hover events on the button are not getting cloned, so we remake the button
+		var $original = $element.clone( true );
+		$original.find( '.wikiedit-button' ).remove();
+		WikiEdit.addEditButton.call( $original );
+
+		// pageWikitext serves as a flag signaling that the dependencies were already loaded
+		if ( WikiEdit.pageWikitext ) {
+			WikiEdit.addEditForm( $element, $original );
+			return;
+		}
+
+		// If we reach this point, we need to load the dependencies
+		// First, we replace the button for a loading spinner
 		// to prevent further clicks and to signal the user that something's happening
 		var $spinner = WikiEdit.getSpinner();
 		$button.replaceWith( $spinner );
 
-		WikiEdit.addEditForm( $element );
+		// Note the special treatment of getTranslations()
+		// because its success callback needs to run AFTER getMessages()
+		$.when(
+			WikiEdit.getPageWikitext(),
+			WikiEdit.getCSS(),
+			WikiEdit.getMessages()
+		).done( function () {
+			WikiEdit.getTranslations().always( function () {
+				WikiEdit.addEditForm( $element, $original );
+			} );
+		} );
 	},
 
 	/**
 	 * Add edit form
 	 */
-	addEditForm: function ( $element ) {
-
-		// Load the page wikitext the first time this method is called
-		if ( !WikiEdit.pageWikitext ) {
-			WikiEdit.getPageWikitext().done( function ( data ) {
-				WikiEdit.pageWikitext = data.parse.wikitext;
-				WikiEdit.addEditForm( $element );
-			} );
-			return;
-		}
-
+	addEditForm: function ( $element, $original ) {
 		// If no relevant wikitext for the element is found, fallback to regular edit
 		var wikitext = WikiEdit.getElementWikitext( $element );
 		if ( !wikitext ) {
@@ -125,33 +143,6 @@ window.WikiEdit = {
 			return;
 		}
 
-		// Load the dependencies the first time we reach this point
-		// Note that if any of the requests fails for whatever reason
-		// we continue anyway because they are not hard dependencies
-		// Also, we don't use $.when because loadMessages() needs to resolve BEFORE loadTranslations()
-		if ( !WikiEdit.css ) {
-			WikiEdit.getCSS().always( function () {
-				WikiEdit.css = true;
-				WikiEdit.addEditForm( $element );
-			} );
-			return;
-		}
-		if ( !WikiEdit.messages ) {
-			WikiEdit.getMessages().always( function () {
-				WikiEdit.messages = true;
-				WikiEdit.addEditForm( $element );
-			} );
-			return;
-		}
-		var language = mw.config.get( 'wgPageContentLanguage' );
-		if ( !WikiEdit.translations && language !== 'en' ) {
-			WikiEdit.getTranslations().always( function () {
-				WikiEdit.translations = true;
-				WikiEdit.addEditForm( $element );
-			} );
-			return;
-		}
-
 		// Make the form
 		var $form = $( '<div class="wikiedit-form"></div>' );
 		var $input = $( '<div class="wikiedit-form-input" contenteditable="true"></div>' ).text( wikitext );
@@ -159,21 +150,15 @@ window.WikiEdit = {
 		var save = new OO.ui.ButtonInputWidget( { label: mw.msg( 'wikiedit-form-save' ), flags: [ 'primary', 'progressive' ] } );
 		var cancel = new OO.ui.ButtonInputWidget( { label: mw.msg( 'wikiedit-form-cancel' ) } );
 		var checkbox = new OO.ui.CheckboxInputWidget( { name: 'minor' } );
-	    var minor = new OO.ui.FieldLayout( checkbox, { label: mw.msg( 'wikiedit-form-minor' ), align: 'inline' } );
-	    var layout = new OO.ui.HorizontalLayout();
+		var minor = new OO.ui.FieldLayout( checkbox, { label: mw.msg( 'wikiedit-form-minor' ), align: 'inline' } );
+		var layout = new OO.ui.HorizontalLayout();
 		layout.addItems( [ save, cancel, minor ] );
 		$footer.append( layout.$element );
 		$form.append( $input, $footer );
 
-		// Save the original element in case we need to restore it
-		var $original = $element.clone( true );
-		$original.find( '.wikiedit-spinner' ).remove();
-		$original.each( WikiEdit.addEditButton );
-
 		// Add to the DOM
 		$element.html( $form );
 		$input.focus();
-		$( 'body' ).css( 'cursor', 'auto' );
 
 		// Handle the cancel
 		cancel.$element.on( 'click', function () {
@@ -260,7 +245,7 @@ window.WikiEdit = {
 	},
 
 	/**
-	 * Load the wikitext of the current page
+	 * Get the wikitext of the current page
 	 */
 	getPageWikitext: function () {
 		var params = {
@@ -269,7 +254,9 @@ window.WikiEdit = {
 			'prop': 'wikitext',
 			'formatversion': 2,
 		};
-		return new mw.Api().get( params );
+		return new mw.Api().get( params ).done( function ( data ) {
+			WikiEdit.pageWikitext = data.parse.wikitext;
+		} );
 	},
 
 	/**
@@ -317,13 +304,13 @@ window.WikiEdit = {
 	/**
 	 * Helper method to get the relevant wikitext that corresponds to a given DOM element
 	 *
-	 * This is the heart of the tool
+	 * This is actually the heart of the tool
 	 * It's an heuristic method to try to find the relevant wikitext
 	 * that corresponds to the DOM element being edited
 	 * Since wikitext and HTML are different markups
-	 * the only place where they meet is in plain text
+	 * the only place where they are the same is in plain text fragments
 	 * so we find the longest fragment of plain text in the HTML
-	 * and from there we figure out the boundaries of the relevant wikitext
+	 * and then we search for that same fragment in the wikitext
 	 *
 	 * @param {jQuery object} jQuery object representing the DOM element being edited
 	 * @return {string|null} Wikitext of the element being edited, or null if it can't be found
