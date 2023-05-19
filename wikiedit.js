@@ -38,31 +38,15 @@ window.WikiEdit = {
 			return;
 		}
 
-		WikiEdit.addEditButtons();
-	},
-
-	/**
-	 * Add the edit buttons to the elements that are elegible for editing
-	 */
-	addEditButtons: function () {
-		// @todo Support lists and replies
-		var $elements = $( 'p', '#mw-content-text' );
-
-		// Filter elements with no text nodes as they will not be editable
-		// This happens often with list items made up of just a link
-		$elements = $elements.filter( function () {
-			var $element = $( this );
-			return WikiEdit.getLongestText( $element );
-		} );
-
-		$elements.each( WikiEdit.addEditButton );
+		// We need to be quite specific to reduce the chances of matching paragraphs that come from templates
+		$( '#mw-content-text > .mw-parser-output > p' ).each( WikiEdit.addEditButton );
 	},
 
 	/**
 	 * Add edit button
 	 */
 	addEditButton: function () {
-		var $element = $( this );
+		var $paragraph = $( this );
 
 		// Make the button
 		var path = '<path fill="currentColor" d="M16.77 8l1.94-2a1 1 0 0 0 0-1.41l-3.34-3.3a1 1 0 0 0-1.41 0L12 3.23zm-5.81-3.71L1 14.25V19h4.75l9.96-9.96-4.75-4.75z"></path>';
@@ -74,8 +58,8 @@ window.WikiEdit = {
 		// so we just omit this part and show the button always
 		if ( mw.config.get( 'skin' ) !== 'minerva' ) {
 			$button.hide();
-			$element.on( 'mouseenter', function () { $button.show(); } );
-			$element.on( 'mouseleave', function () { $button.hide(); } );
+			$paragraph.on( 'mouseenter', function () { $button.show(); } );
+			$paragraph.on( 'mouseleave', function () { $button.hide(); } );
 		}
 
 		// Add a little CSS here to delay loading the full CSS until the user actually clicks something
@@ -84,11 +68,7 @@ window.WikiEdit = {
 		$button.on( 'mouseleave', function () { $( this ).css( 'color', '#a2a9b1' ); } );
 
 		// Add to the DOM
-		if ( $element.children( 'ul, ol, dl' ).length ) {
-			$element.children( 'ul, ol, dl' ).before( ' ', $button );
-		} else {
-			$element.append( ' ', $button );
-		}
+		$paragraph.append( ' ', $button );
 	},
 
 	/**
@@ -96,17 +76,17 @@ window.WikiEdit = {
 	 */
 	onEditButtonClick: function () {
 		var $button = $( this ).closest( '.wikiedit-button' );
-		var $element = $button.parent();
+		var $paragraph = $button.parent();
 
-		// Save the original element in case we need to restore it later
+		// Save the original paragraph in case we need to restore it later
 		// However, for some reason the hover events on the button are not getting cloned, so we remake the button
-		var $original = $element.clone( true );
+		var $original = $paragraph.clone( true );
 		$original.find( '.wikiedit-button' ).remove();
 		WikiEdit.addEditButton.call( $original );
 
 		// pageWikitext serves as a flag signaling that the dependencies were already loaded
 		if ( WikiEdit.pageWikitext ) {
-			WikiEdit.addEditForm( $element, $original );
+			WikiEdit.addEditForm( $paragraph, $original );
 			return;
 		}
 
@@ -117,14 +97,15 @@ window.WikiEdit = {
 		$button.replaceWith( $spinner );
 
 		// Note the special treatment of getTranslations()
-		// because its success callback needs to run AFTER getMessages()
+		// because it may fail if a translation doesn't exist yet
+		// and because its success callback needs to run AFTER getMessages()
 		$.when(
 			WikiEdit.getPageWikitext(),
 			WikiEdit.getCSS(),
 			WikiEdit.getMessages()
 		).done( function () {
 			WikiEdit.getTranslations().always( function () {
-				WikiEdit.addEditForm( $element, $original );
+				WikiEdit.addEditForm( $paragraph, $original );
 			} );
 		} );
 	},
@@ -132,11 +113,11 @@ window.WikiEdit = {
 	/**
 	 * Add edit form
 	 */
-	addEditForm: function ( $element, $original ) {
+	addEditForm: function ( $paragraph, $original ) {
 		// If no relevant wikitext for the element is found, fallback to regular edit
-		var wikitext = WikiEdit.getElementWikitext( $element );
+		var wikitext = WikiEdit.getParagraphWikitext( $paragraph );
 		if ( !wikitext ) {
-			var $section = WikiEdit.getSection( $element );
+			var $section = WikiEdit.getSection( $paragraph );
 			var sectionNumber = $section ? 1 + $section.prevAll( ':header' ).length : 0;
 			var editUrl = mw.util.getUrl( null, { action: 'edit', section: sectionNumber } );
 			window.location.href = editUrl;
@@ -145,61 +126,60 @@ window.WikiEdit = {
 
 		// Make the form
 		var $form = $( '<div class="wikiedit-form"></div>' );
-		var $input = $( '<div class="wikiedit-form-input" contenteditable="true"></div>' ).text( wikitext );
+		var $input = $( '<p class="wikiedit-form-input" contenteditable="true"></p>' ).text( wikitext );
 		var $footer = $( '<div class="wikiedit-form-footer"></div>' );
+		var summary = new OO.ui.TextInputWidget( { name: 'summary', placeholder: mw.msg( 'wikiedit-form-summary' ) } );
 		var save = new OO.ui.ButtonInputWidget( { label: mw.msg( 'wikiedit-form-save' ), flags: [ 'primary', 'progressive' ] } );
-		var cancel = new OO.ui.ButtonInputWidget( { label: mw.msg( 'wikiedit-form-cancel' ) } );
-		var checkbox = new OO.ui.CheckboxInputWidget( { name: 'minor' } );
-		var minor = new OO.ui.FieldLayout( checkbox, { label: mw.msg( 'wikiedit-form-minor' ), align: 'inline' } );
-		var layout = new OO.ui.HorizontalLayout();
-		layout.addItems( [ save, cancel, minor ] );
-		$footer.append( layout.$element );
+		var cancel = new OO.ui.ButtonInputWidget( { label: mw.msg( 'wikiedit-form-cancel' ), framed: false, flags: 'destructive' } );
+		var minorCheckbox = new OO.ui.CheckboxInputWidget( { name: 'minor' } );
+		var minorLayout = new OO.ui.FieldLayout( minorCheckbox, { label: mw.msg( 'wikiedit-form-minor' ), align: 'inline' } );
+		var layout = new OO.ui.HorizontalLayout( { items: [ summary, minorLayout ] } );
+		$footer.append( layout.$element, save.$element, cancel.$element );
 		$form.append( $input, $footer );
 
 		// Add to the DOM
-		$element.html( $form );
+		$paragraph.html( $form );
 		$input.focus();
 
 		// Handle the cancel
 		cancel.$element.on( 'click', function () {
-			$element.replaceWith( $original );
+			$paragraph.replaceWith( $original );
 		} );
 
 		// Handle the submit
-		save.$element.on( 'click', {
-			'element': $element,
-			'original': $original,
-			'wikitext': wikitext
-		}, WikiEdit.onSubmit );
+		save.$element.on( 'click', function () {
+			WikiEdit.onSubmit( $paragraph, $original, $form, wikitext );
+		} );
 	},
 
 	/**
 	 * Handle form submission
 	 */
-	onSubmit: function ( event ) {
-		var $submit = $( this );
-		var $footer = $submit.closest( '.wikiedit-form-footer' );
-		var $form = $submit.closest( '.wikiedit-form' );
-		var minor = $footer.find( 'input[name="minor"]' ).prop( 'checked' );
+	onSubmit: function ( $paragraph, $original, $form, oldWikitext ) {
+		// Use innerText because jQuery's text() removes line breaks
+		var newWikitext = $form.find( '.wikiedit-form-input' ).prop( 'innerText' );
+
+		// If no changes were made, just restore the original element
+		if ( oldWikitext === newWikitext ) {
+			$paragraph.replaceWith( $original );
+			return;
+		}
+
+		// Get the rest of the form data
+		var summary = $form.find( 'input[name="summary"]' ).val();
+		var minor = $form.find( 'input[name="minor"]' ).prop( 'checked' );
 
 		// Replace the footer with a saving message
 		// to prevent further clicks and to signal the user that something's happening
 		var saving = mw.msg( 'wikiedit-form-saving' );
+		var $footer = $form.find( '.wikiedit-form-footer' );
 		$footer.text( saving );
 
-		var $element = event.data.element;
-		var oldWikitext = event.data.wikitext;
-		var newWikitext = $form.find( '.wikiedit-form-input' ).prop( 'innerText' ); // jQuery's text() removes line breaks
-		if ( oldWikitext === newWikitext ) {
-			var $original = event.data.original;
-			$element.replaceWith( $original );
-			return;
-		}
-
-		// If line breaks were added, remove excessive ones
+		// Fix excessive line breaks
+		newWikitext = newWikitext.trim();
 		newWikitext = newWikitext.replace( /\n\n\n+/g, '\n\n' );
 
-		// If content was deleted, remove also any trailing newlines
+		// If the paragraph was deleted, remove also any trailing newlines
 		if ( !newWikitext ) {
 			oldWikitext = oldWikitext.replace( /[.*+?^${}()|[\]\\]/g, '\\$&' ); // Escape special characters
 			oldWikitext = new RegExp( oldWikitext + '\n+' );
@@ -211,20 +191,20 @@ window.WikiEdit = {
 			'title': mw.config.get( 'wgPageName' ),
 			'text': WikiEdit.pageWikitext,
 			'minor': minor,
-			'summary': WikiEdit.makeSummary( newWikitext, $element ),
+			'summary': WikiEdit.makeSummary( summary, $form, newWikitext ),
 			'tags': mw.config.get( 'wikiedit-tag' )
 		};
 		new mw.Api().postWithEditToken( params ).done( function () {
-			WikiEdit.onSuccess( $element, newWikitext );
+			WikiEdit.onSuccess( $paragraph, newWikitext );
 		} );
 	},
 
 	/**
 	 * Callback on successful edits
 	 */
-	onSuccess: function ( $element, newWikitext ) {
+	onSuccess: function ( $paragraph, newWikitext ) {
 		if ( !newWikitext ) {
-			$element.remove();
+			$paragraph.remove();
 			return;
 		}
 		var params = {
@@ -239,7 +219,7 @@ window.WikiEdit = {
 		new mw.Api().get( params ).done( function ( data ) {
 			var text = data.parse.text;
 			var $html = $( text );
-			$element.replaceWith( $html );
+			$paragraph.replaceWith( $html );
 			$html.each( WikiEdit.addEditButton );
 		} );
 	},
@@ -302,28 +282,25 @@ window.WikiEdit = {
 	},
 
 	/**
-	 * Helper method to get the relevant wikitext that corresponds to a given DOM element
+	 * Helper method to get the relevant wikitext that corresponds to a given paragraph
 	 *
 	 * This is actually the heart of the tool
 	 * It's an heuristic method to try to find the relevant wikitext
-	 * that corresponds to the DOM element being edited
+	 * that corresponds to the paragraph being edited
 	 * Since wikitext and HTML are different markups
 	 * the only place where they are the same is in plain text fragments
-	 * so we find the longest fragment of plain text in the HTML
-	 * and then we search for that same fragment in the wikitext
+	 * so we find the longest plain text fragments in the HTML
+	 * then we search for that same fragment in the wikitext
+	 * and return the entire line of wikitext containing that fragment
 	 *
 	 * @param {jQuery object} jQuery object representing the DOM element being edited
-	 * @return {string|null} Wikitext of the element being edited, or null if it can't be found
+	 * @return {string|null} Wikitext of the paragraph being edited, or null if it can't be found
 	 */
-	getElementWikitext: function ( $element ) {
-		var wikitext;
+	getParagraphWikitext: function ( $paragraph ) {
+		// The longest text node has the most chances of being unique
+		var text = WikiEdit.getLongestText( $paragraph );
 
-		// Get the text of longest text node
-		// because it has the most chances of being unique
-		var text = WikiEdit.getLongestText( $element );
-
-		// Some elements don't have text nodes
-		// for example list items with just a link
+		// Some paragraphs may not have text nodes at all
 		if ( !text ) {
 			return;
 		}
@@ -333,37 +310,26 @@ window.WikiEdit = {
 		var regexp = new RegExp( '.*' + text + '.*', 'g' );
 		var matches = WikiEdit.pageWikitext.match( regexp );
 
-		// This happens often when the element comes from a template
+		// This may happen if the paragraph comes from a template
 		if ( !matches ) {
 			return;
 		}
 
-		// This happens often when the text is very short and accidentally repeats
+		// This may happen if the longest text is very short and repats somewhere else
 		if ( matches.length > 1 ) {
 			return;
 		}
 
-		// If we reach this point, we got our relevant wikitext line
-		wikitext = matches[0];
-
-		// In the case of lists, we need to clean up a little
-		wikitext = wikitext.replace( /^[*#:]+ */, '' );
-
-		// In theory this should not happen
-		if ( !wikitext ) {
-			return;
-		}
-
-		// We're done, return the relevant wikitext
-		return wikitext;
+		// We got our relevant wikitext line
+		return matches[0];
 	},
 
 	/**
 	 * Helper method to get the text of the longest text node
 	 */
-	getLongestText: function ( $element ) {
+	getLongestText: function ( $paragraph ) {
 		var text = '';
-		var $textNodes = $element.contents().filter( function () {
+		var $textNodes = $paragraph.contents().filter( function () {
 			return this.nodeType === 3; // Text node
 		} );
 		$textNodes.each( function () {
@@ -378,14 +344,13 @@ window.WikiEdit = {
 	/**
 	 * Helper method to build a helpful edit summary
 	 */
-	makeSummary: function ( wikitext, $element ) {
-		var action = 'edit';
-		if ( !wikitext ) {
-			action = 'delete';
+	makeSummary: function ( summary, $paragraph, wikitext ) {
+		if ( !summary ) {
+			var action = wikitext ? 'edit' : 'delete';
+			var page = mw.config.get( 'wikiedit-page', 'mw:WikiEdit' );
+			summary = mw.msg( 'wikiedit-summary-' + action, page );
 		}
-		var page = mw.config.get( 'wikiedit-page', 'mw:WikiEdit' );
-		var summary = mw.msg( 'wikiedit-summary-' + action, page );
-		var $section = WikiEdit.getSection( $element );
+		var $section = WikiEdit.getSection( $paragraph );
 		if ( $section ) {
 			var section = $section.find( '.mw-headline' ).attr( 'id' ).replaceAll( '_', ' ' );
 			summary = '/* ' + section + ' */ ' + summary;

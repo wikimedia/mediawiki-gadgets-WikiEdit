@@ -6,8 +6,9 @@
 	},
 	"wikiedit-form-save": "Save",
 	"wikiedit-form-cancel": "Cancel",
+	"wikiedit-form-summary": "Edit summary",
 	"wikiedit-form-minor": "Minor edit",
 	"wikiedit-form-saving": "Saving...",
-	"wikiedit-summary-edit": "Content edited with [[$1|WikiEdit]]",
-	"wikiedit-summary-delete": "Content deleted with [[$1|WikiEdit]]"
+	"wikiedit-summary-edit": "Paragraph edited with [[$1|WikiEdit]]",
+	"wikiedit-summary-delete": "Paragraph deleted with [[$1|WikiEdit]]"
 }
