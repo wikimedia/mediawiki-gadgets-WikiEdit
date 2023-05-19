@@ -223,15 +223,14 @@ window.WikiEdit = {
 			'text': newWikitext,
 			'formatversion': 2,
 			'prop': 'text',
-			'wrapoutputclass': null,
 			'disablelimitreport': true,
 		};
 		new mw.Api().get( params ).done( function ( data ) {
 			var text = data.parse.text;
 			var $html = $( text );
-			$paragraph.replaceWith( $html );
-			$html.filter( '.references' ).hide();
-			$html.each( WikiEdit.addEditButton );
+			var $paragraphs = $html.find( 'p' );
+			$paragraph.replaceWith( $paragraphs );
+			$paragraphs.each( WikiEdit.addEditButton );
 		} );
 	},
 
