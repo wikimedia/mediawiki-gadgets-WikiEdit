@@ -201,7 +201,7 @@ window.WikiEdit = {
 		};
 		new mw.Api().postWithEditToken( params ).done( function () {
 			WikiEdit.onSuccess( $paragraph, newWikitext );
-		} ).fail( console.log );
+		} );
 	},
 
 	/**
