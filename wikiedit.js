@@ -130,14 +130,19 @@ window.WikiEdit = {
 		var $footer = $( '<div class="wikiedit-form-footer"></div>' );
 		var summary = new OO.ui.TextInputWidget( { name: 'summary', placeholder: mw.msg( 'wikiedit-form-summary' ) } );
 		var save = new OO.ui.ButtonInputWidget( { label: mw.msg( 'wikiedit-form-save' ), flags: [ 'primary', 'progressive' ] } );
-		var cancel = new OO.ui.ButtonInputWidget( { label: mw.msg( 'wikiedit-form-cancel' ), framed: false, flags: 'destructive' } );
-		var minorCheckbox = new OO.ui.CheckboxInputWidget( { name: 'minor' } );
-		var minorLayout = new OO.ui.FieldLayout( minorCheckbox, { label: mw.msg( 'wikiedit-form-minor' ), align: 'inline' } );
-		var layout = new OO.ui.HorizontalLayout( { items: [ summary, minorLayout ] } );
-		$footer.append( layout.$element, save.$element, cancel.$element );
-		$form.append( $input, $footer );
+		var cancel = new OO.ui.ButtonInputWidget( { label: mw.msg( 'wikiedit-form-cancel' ), flags: 'destructive', framed: false } );
+		var layout = new OO.ui.HorizontalLayout( { items: [ summary ] } );
+
+		// Anons can't mark edits as minor
+		if ( !mw.user.isAnon() ) {
+			var minorCheckbox = new OO.ui.CheckboxInputWidget( { name: 'minor' } );
+			var minorLayout = new OO.ui.FieldLayout( minorCheckbox, { label: mw.msg( 'wikiedit-form-minor' ), align: 'inline' } );
+			layout.addItems( [ minorLayout ] );
+		}
 
 		// Add to the DOM
+		$footer.append( layout.$element, save.$element, cancel.$element );
+		$form.append( $input, $footer );
 		$paragraph.html( $form );
 		$input.focus();
 
@@ -196,7 +201,7 @@ window.WikiEdit = {
 		};
 		new mw.Api().postWithEditToken( params ).done( function () {
 			WikiEdit.onSuccess( $paragraph, newWikitext );
-		} );
+		} ).fail( console.log );
 	},
 
 	/**
