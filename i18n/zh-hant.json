@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"Kly"
+		]
+	},
+	"wikiedit-form-save": "儲存",
+	"wikiedit-form-cancel": "取消",
+	"wikiedit-form-summary": "編輯摘要",
+	"wikiedit-form-minor": "小修改",
+	"wikiedit-form-saving": "儲存中…",
+	"wikiedit-summary-edit": "已用 [[$1|WikiEdit]] 編輯段落",
+	"wikiedit-summary-delete": "已用 [[$1|WikiEdit]] 刪除段落"
+}

@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"Eleassar"
+		]
+	},
+	"wikiedit-form-save": "Shrani",
+	"wikiedit-form-cancel": "Prekliči",
+	"wikiedit-form-summary": "Povzetek urejanja",
+	"wikiedit-form-minor": "Manjše urejanje",
+	"wikiedit-form-saving": "Shranjevanje&nbsp;...",
+	"wikiedit-summary-edit": "sprememba odstavka z [[$1|WikiEdit]]",
+	"wikiedit-summary-delete": "izbris odstavka z [[$1|WikiEdit]]"
+}

@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"Bjankuloski06"
+		]
+	},
+	"wikiedit-form-save": "Зачувај",
+	"wikiedit-form-cancel": "Откажи",
+	"wikiedit-form-summary": "Опис на уредувањето",
+	"wikiedit-form-minor": "Ситно уредување",
+	"wikiedit-form-saving": "Зачувувам...",
+	"wikiedit-summary-edit": "Пасус уреден со [[$1|WikiEdit]]",
+	"wikiedit-summary-delete": "Пасус избришан со [[$1|WikiEdit]]"
+}

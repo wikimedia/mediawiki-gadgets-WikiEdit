@@ -1,0 +1,15 @@
+{
+	"@metadata": {
+		"authors": [
+			"Gomoko",
+			"Verdy p"
+		]
+	},
+	"wikiedit-form-save": "Enregistrer",
+	"wikiedit-form-cancel": "Annuler",
+	"wikiedit-form-summary": "Modifier le résumé",
+	"wikiedit-form-minor": "Modification mineure",
+	"wikiedit-form-saving": "Enregistrement...",
+	"wikiedit-summary-edit": "Paragraphe modifié avec [[$1|WikiEdit]]",
+	"wikiedit-summary-delete": "Paragraphe supprimé avec [[$1|WikiEdit]]"
+}

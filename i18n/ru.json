@@ -1,0 +1,11 @@
+{
+	"@metadata": {
+		"authors": [
+			"Kareyac"
+		]
+	},
+	"wikiedit-form-save": "Сохранить",
+	"wikiedit-form-cancel": "Отмена",
+	"wikiedit-form-summary": "Описание изменений",
+	"wikiedit-form-minor": "Малая правка"
+}

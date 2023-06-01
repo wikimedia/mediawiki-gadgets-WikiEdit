@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"Afalau"
+		]
+	},
+	"wikiedit-form-save": "Cadw",
+	"wikiedit-form-cancel": "Canslo",
+	"wikiedit-form-summary": "Crynodeb golygu",
+	"wikiedit-form-minor": "Golygiad bychan",
+	"wikiedit-form-saving": "Wrthi'n cadw...",
+	"wikiedit-summary-edit": "Golygu paragraff gydag [[$1|WikiEdit]]",
+	"wikiedit-summary-delete": "Dileu paragraff gydag [[$1|WikiEdit]]"
+}

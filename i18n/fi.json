@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Pyscowicz"
+		]
+	},
+	"wikiedit-form-save": "Tallenna",
+	"wikiedit-form-cancel": "Peruuta",
+	"wikiedit-form-summary": "Muokkausyhteenveto",
+	"wikiedit-form-minor": "Pieni muutos",
+	"wikiedit-form-saving": "Tallennetaan..."
+}
