@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"Jon Harald Søby"
+		]
+	},
+	"wikiedit-form-save": "Lagre",
+	"wikiedit-form-cancel": "Avbryt",
+	"wikiedit-form-summary": "Redigeringsforklaring",
+	"wikiedit-form-minor": "Mindre endring",
+	"wikiedit-form-saving": "Lagrer …",
+	"wikiedit-summary-edit": "Avsnitt redigert med [[$1|WikiEdit]]",
+	"wikiedit-summary-delete": "Avsnitt slettet med [[$1|WikiEdit]]"
+}

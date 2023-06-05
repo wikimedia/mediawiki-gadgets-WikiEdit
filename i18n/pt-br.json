@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"Re demz"
+		]
+	},
+	"wikiedit-form-save": "Salvar",
+	"wikiedit-form-cancel": "Cancelar",
+	"wikiedit-form-summary": "Resumo da edição",
+	"wikiedit-form-minor": "Edição menor",
+	"wikiedit-form-saving": "Salvando…",
+	"wikiedit-summary-edit": "Parágrafo editado com [[$1|WikiEdit]]",
+	"wikiedit-summary-delete": "Parágrafo borrado com [[$1|WikiEdit]]"
+}

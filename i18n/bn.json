@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"আফতাবুজ্জামান"
+		]
+	},
+	"wikiedit-form-save": "সংরক্ষণ",
+	"wikiedit-form-cancel": "বাতিল",
+	"wikiedit-form-summary": "সম্পাদনা সারাংশ",
+	"wikiedit-form-minor": "অনুল্লেখ্য সম্পাদনা",
+	"wikiedit-form-saving": "সংরক্ষণ করা হচ্ছে ...",
+	"wikiedit-summary-edit": "[[$1|উইকি-সম্পাদনা]] ব্যবহার করে অনুচ্ছেদ সম্পাদিত",
+	"wikiedit-summary-delete": "[[$1|উইকি-সম্পাদনা]] ব্যবহার করে অনুচ্ছেদ অপসারণ"
+}

@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"Dogogos123"
+		]
+	},
+	"wikiedit-form-save": "Αποθήκευση",
+	"wikiedit-form-cancel": "Ακύρωση",
+	"wikiedit-form-summary": "Σύνοψη επεξεργασίας",
+	"wikiedit-form-minor": "Μικροεπεξεργασίες",
+	"wikiedit-form-saving": "Γίνεται αποθήκευση…",
+	"wikiedit-summary-edit": "Η παράγραφος επεξεργάστηκε με [[$1|WikiEdit]]",
+	"wikiedit-summary-delete": "Η παράγραφος διαγράφηκε με [[$1|WikiEdit]]"
+}

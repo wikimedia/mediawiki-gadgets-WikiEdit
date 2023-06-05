@@ -8,5 +8,7 @@
 	"wikiedit-form-cancel": "Peruuta",
 	"wikiedit-form-summary": "Muokkausyhteenveto",
 	"wikiedit-form-minor": "Pieni muutos",
-	"wikiedit-form-saving": "Tallennetaan..."
+	"wikiedit-form-saving": "Tallennetaan...",
+	"wikiedit-summary-edit": "Kappaletta muokattu [[$1|WikiEditillä]]",
+	"wikiedit-summary-delete": "Kappale poistettu [[$1|WikiEditillä]]"
 }

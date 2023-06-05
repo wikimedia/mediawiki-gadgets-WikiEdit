@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": []
+	},
+	"wikiedit-form-save": "Speichern",
+	"wikiedit-form-cancel": "Abbrechen",
+	"wikiedit-form-summary": "Bearbeitungszusammenfassung",
+	"wikiedit-form-minor": "Kleine Änderung",
+	"wikiedit-form-saving": "Speichere …",
+	"wikiedit-summary-edit": "Absatz bearbeitet mit [[$1|WikiEdit]]",
+	"wikiedit-summary-delete": "Absatz gelöscht mit [[$1|WikiEdit]]"
+}
