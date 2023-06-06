@@ -101,15 +101,17 @@ window.WikiEdit = {
 		var $spinner = WikiEdit.getSpinner();
 		$button.replaceWith( $spinner );
 
-		// Note the special treatment of getTranslations()
-		// because it may fail if a translation doesn't exist yet
-		// and because its success callback needs to run AFTER getMessages()
+		// Then we load dependencies
 		$.when(
 			WikiEdit.getPageWikitext(),
 			WikiEdit.getCSS(),
-			WikiEdit.getMessages()
+			WikiEdit.getMessages( 'en' )
 		).done( function () {
-			WikiEdit.getTranslations().always( function () {
+			// Note the special treatment of getMessages( pageLanguage )
+			// because it may fail if a translation doesn't exist yet
+			// and because its success callback needs to run AFTER getMessages( 'en' )
+			var pageLanguage = mw.config.get( 'wgPageContentLanguage' );
+			WikiEdit.getMessages( pageLanguage ).always( function () {
 				WikiEdit.addEditForm( $paragraph, $original );
 			} );
 		} );
@@ -134,7 +136,7 @@ window.WikiEdit = {
 		var $input = $( '<p class="wikiedit-form-input" contenteditable="true"></p>' ).text( wikitext );
 		var $footer = $( '<div class="wikiedit-form-footer"></div>' );
 		var summary = new OO.ui.TextInputWidget( { name: 'summary', placeholder: mw.msg( 'wikiedit-form-summary' ) } );
-		var save = new OO.ui.ButtonInputWidget( { label: mw.msg( 'wikiedit-form-save' ), flags: [ 'primary', 'progressive' ] } );
+		var publish = new OO.ui.ButtonInputWidget( { label: mw.msg( 'wikiedit-form-publish' ), flags: [ 'primary', 'progressive' ] } );
 		var cancel = new OO.ui.ButtonInputWidget( { label: mw.msg( 'wikiedit-form-cancel' ), flags: 'destructive', framed: false } );
 		var layout = new OO.ui.HorizontalLayout( { items: [ summary ] } );
 
@@ -146,7 +148,7 @@ window.WikiEdit = {
 		}
 
 		// Add to the DOM
-		$footer.append( layout.$element, save.$element, cancel.$element );
+		$footer.append( layout.$element, publish.$element, cancel.$element );
 		$form.append( $input, $footer );
 		$paragraph.html( $form );
 		$input.focus();
@@ -157,7 +159,7 @@ window.WikiEdit = {
 		} );
 
 		// Handle the submit
-		save.$element.on( 'click', function () {
+		publish.$element.on( 'click', function () {
 			WikiEdit.onSubmit( $paragraph, $original, $form, wikitext );
 		} );
 	},
@@ -266,23 +268,7 @@ window.WikiEdit = {
 	 * English messages are always loaded as a fallback
 	 * in case we don't have translated messages
 	 */
-	getMessages: function () {
-		return $.get( '//gerrit.wikimedia.org/r/plugins/gitiles/mediawiki/gadgets/WikiEdit/+/master/i18n/en.json?format=text', function ( data ) {
-			var json = WikiEdit.decodeBase64( data );
-			var messages = JSON.parse( json );
-			delete messages[ '@metadata' ];
-			mw.messages.set( messages );
-		} );
-	},
-
-	/**
-	 * Get the translated messages from the Wikimedia repository
-	 *
-	 * We use the page language rather than the user language
-	 * because the edit summaries must be in the page language
-	 */
-	getTranslations: function () {
-		var language = mw.config.get( 'wgPageContentLanguage' );
+	getMessages: function ( language ) {
 		return $.get( '//gerrit.wikimedia.org/r/plugins/gitiles/mediawiki/gadgets/WikiEdit/+/master/i18n/' + language + '.json?format=text', function ( data ) {
 			var json = WikiEdit.decodeBase64( data );
 			var messages = JSON.parse( json );
@@ -415,7 +401,7 @@ window.WikiEdit = {
 	},
 
 	/**
-	 * Helper function to decode base64 strings
+	 * Helper method to decode base64 strings
 	 * See https://stackoverflow.com/questions/30106476
 	 *
 	 * @param {string} Encoded string

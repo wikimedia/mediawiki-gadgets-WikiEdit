@@ -4,7 +4,7 @@
 			"Sophivorus"
 		]
 	},
-	"wikiedit-form-save": "Label of the button to save the changes",
+	"wikiedit-form-publish": "Label of the button to publish the changes",
 	"wikiedit-form-cancel": "Label of the button to cancel the edit",
 	"wikiedit-form-summary": "Label of the field to enter the edit summary",
 	"wikiedit-form-minor": "Label of the checkbox to mark the edit as minor",
