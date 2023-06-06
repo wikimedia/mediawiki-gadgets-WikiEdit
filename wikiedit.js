@@ -252,14 +252,10 @@ window.WikiEdit = {
 	},
 
 	/**
-	 * Get the CSS from the Wikimedia repository and add it to the DOM
+	 * Get the CSS from the central version at MediaWiki.org
 	 */
 	getCSS: function () {
-		return $.get( '//gerrit.wikimedia.org/r/plugins/gitiles/mediawiki/gadgets/WikiEdit/+/master/wikiedit.css?format=text', function ( data ) {
-			var css = atob( data );
-			var $style = $( '<style>' ).html( css );
-			$( 'head' ).append( $style );
-		} );
+		return mw.loader.load( '//www.mediawiki.org/wiki/MediaWiki:WikiEdit.css?action=raw&ctype=text/css', 'text/css' );
 	},
 
 	/**
