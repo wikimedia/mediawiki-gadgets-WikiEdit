@@ -259,10 +259,7 @@ window.WikiEdit = {
 	},
 
 	/**
-	 * Get the English messages from the Wikimedia repository
-	 *
-	 * English messages are always loaded as a fallback
-	 * in case we don't have translated messages
+	 * Get messages from the Wikimedia repository
 	 */
 	getMessages: function ( language ) {
 		return $.get( '//gerrit.wikimedia.org/r/plugins/gitiles/mediawiki/gadgets/WikiEdit/+/master/i18n/' + language + '.json?format=text', function ( data ) {
