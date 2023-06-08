@@ -1,11 +1,13 @@
 {
 	"@metadata": {
 		"authors": [
+			"Amire80",
 			"Kareyac"
 		]
 	},
-	"wikiedit-form-save": "Сохранить",
 	"wikiedit-form-cancel": "Отмена",
 	"wikiedit-form-summary": "Описание изменений",
-	"wikiedit-form-minor": "Малая правка"
+	"wikiedit-form-minor": "Малая правка",
+	"wikiedit-summary-edit": "Абзац отредактирован с помощью [[$1|WikiEdit]]",
+	"wikiedit-summary-delete": "Абзац удалён с помощью [[$1|WikiEdit]]"
 }

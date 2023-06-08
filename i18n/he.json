@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"Amire80"
+		]
+	},
+	"wikiedit-form-publish": "פרסום",
+	"wikiedit-form-cancel": "ביטול",
+	"wikiedit-form-summary": "תקציר העריכה",
+	"wikiedit-form-minor": "עריכה משנית",
+	"wikiedit-form-saving": "שמירה...",
+	"wikiedit-summary-edit": "הפסקה נערכה באמצעות [[$1|WikiEdit]]",
+	"wikiedit-summary-delete": "הפסקה נמחקה באמצעות [[$1|WikiEdit]]"
+}

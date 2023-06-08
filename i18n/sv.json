@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"Sabelöga"
+		]
+	},
+	"wikiedit-form-cancel": "Avbryt",
+	"wikiedit-form-summary": "Redigera sammanfattning",
+	"wikiedit-form-minor": "Mindre redigering",
+	"wikiedit-form-saving": "Sparar...",
+	"wikiedit-summary-edit": "Paragrafen redigerades med [[$1|WikiEdit]]",
+	"wikiedit-summary-delete": "Paragrafen raderades med [[$1|WikiEdit]]"
+}
