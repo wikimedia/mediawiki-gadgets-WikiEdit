@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"NGC 54"
+		]
+	},
+	"wikiedit-form-publish": "Publicare",
+	"wikiedit-form-cancel": "Anulare",
+	"wikiedit-form-summary": "Rezumatul modificării",
+	"wikiedit-form-minor": "Modificare minoră",
+	"wikiedit-form-saving": "Se salvează...",
+	"wikiedit-summary-edit": "Paragraf modificat cu [[$1|WikiEdit]]",
+	"wikiedit-summary-delete": "Paragraf șters cu [[$1|WikiEdit]]"
+}

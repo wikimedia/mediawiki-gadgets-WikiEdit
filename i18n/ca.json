@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"Arnaugir"
+		]
+	},
+	"wikiedit-form-publish": "Publica",
+	"wikiedit-form-cancel": "Cancel·la",
+	"wikiedit-form-summary": "Resum d'edició",
+	"wikiedit-form-minor": "Edició menor",
+	"wikiedit-form-saving": "S’està desant…",
+	"wikiedit-summary-edit": "Paràgraf editat amb [[$1|WikiEdit]]",
+	"wikiedit-summary-delete": "Paràgraf eliminat amb [[$1|WikiEdit]]"
+}

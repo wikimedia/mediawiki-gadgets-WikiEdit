@@ -1,9 +1,11 @@
 {
 	"@metadata": {
 		"authors": [
+			"AProdromou",
 			"Dogogos123"
 		]
 	},
+	"wikiedit-form-publish": "Δημοσίευση",
 	"wikiedit-form-cancel": "Ακύρωση",
 	"wikiedit-form-summary": "Σύνοψη επεξεργασίας",
 	"wikiedit-form-minor": "Μικροεπεξεργασίες",
