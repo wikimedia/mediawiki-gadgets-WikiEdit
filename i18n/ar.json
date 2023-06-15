@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"Asma"
+		]
+	},
+	"wikiedit-form-publish": "نشر",
+	"wikiedit-form-cancel": "إلغاء",
+	"wikiedit-form-summary": "ملخص التعديل",
+	"wikiedit-form-minor": "تعديل طفيف",
+	"wikiedit-form-saving": "جارٍ الحفظ...",
+	"wikiedit-summary-edit": "تم تحرير الفقرة باستخدام [[ $1 | WikiEdit]]",
+	"wikiedit-summary-delete": "تم حذف الفقرة باستخدام [[ $1 | WikiEdit]]"
+}

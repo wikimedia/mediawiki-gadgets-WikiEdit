@@ -2,12 +2,15 @@
 	"@metadata": {
 		"authors": [
 			"Amire80",
-			"Kareyac"
+			"Kareyac",
+			"Okras"
 		]
 	},
+	"wikiedit-form-publish": "Опубликовать",
 	"wikiedit-form-cancel": "Отмена",
 	"wikiedit-form-summary": "Описание изменений",
 	"wikiedit-form-minor": "Малая правка",
+	"wikiedit-form-saving": "Сохраняется…",
 	"wikiedit-summary-edit": "Абзац отредактирован с помощью [[$1|WikiEdit]]",
 	"wikiedit-summary-delete": "Абзац удалён с помощью [[$1|WikiEdit]]"
 }
