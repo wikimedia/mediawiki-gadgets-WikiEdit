@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"McDutchie"
+		]
+	},
+	"wikiedit-form-publish": "Publicar",
+	"wikiedit-form-cancel": "Cancellar",
+	"wikiedit-form-summary": "Summario del modification",
+	"wikiedit-form-minor": "Modification minor",
+	"wikiedit-form-saving": "Salveguarda…",
+	"wikiedit-summary-edit": "Paragrapho modificate con [[$1|WikiEdit]]",
+	"wikiedit-summary-delete": "Paragrapho delite con [[$1|WikiEdit]]"
+}
