@@ -1,0 +1,15 @@
+{
+	"@metadata": {
+		"authors": [
+			"Ykhwong",
+			"그냥기여자"
+		]
+	},
+	"wikiedit-form-publish": "게시",
+	"wikiedit-form-cancel": "취소",
+	"wikiedit-form-summary": "편집 요약",
+	"wikiedit-form-minor": "사소한 편집",
+	"wikiedit-form-saving": "저장 중...",
+	"wikiedit-summary-edit": "[[$1|WikiEdit]]으로 단락 편집함",
+	"wikiedit-summary-delete": "[[$1|WikiEdit]]으로 단락 삭제함"
+}
