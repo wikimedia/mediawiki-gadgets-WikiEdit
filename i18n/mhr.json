@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"Lifeway"
+		]
+	},
+	"wikiedit-form-publish": "Савыкташ",
+	"wikiedit-form-cancel": "Чараш",
+	"wikiedit-form-summary": "Вашталтыш-влакым палемдымаш",
+	"wikiedit-form-minor": "Изин тӧрлатымаш",
+	"wikiedit-form-saving": "Аралатеш...",
+	"wikiedit-summary-edit": "Абзацым [[$1|WikiEdit]] полшымо дене тӧрлатыме",
+	"wikiedit-summary-delete": "Абзацым [[$1|WikiEdit]] полшымо дене кораҥдыме"
+}
