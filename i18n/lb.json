@@ -6,6 +6,9 @@
 	},
 	"wikiedit-form-publish": "Verëffentlechen",
 	"wikiedit-form-cancel": "Ofbriechen",
+	"wikiedit-form-summary": "Resumé vun der Ännerung",
 	"wikiedit-form-minor": "Kleng Ännerung",
-	"wikiedit-form-saving": "Späicheren..."
+	"wikiedit-form-saving": "Späicheren...",
+	"wikiedit-summary-edit": "Abschnitt geännert mat [[$1|WikiEdit]]",
+	"wikiedit-summary-delete": "Abschnitt geläscht mat [[$1|WikiEdit]]"
 }
