@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"Sveinki"
+		]
+	},
+	"wikiedit-form-publish": "Birta",
+	"wikiedit-form-cancel": "Hætta við",
+	"wikiedit-form-summary": "Breytingarágrip",
+	"wikiedit-form-minor": "Minniháttar breyting",
+	"wikiedit-form-saving": "Vistar...",
+	"wikiedit-summary-edit": "Málsgrein breytt með [[$1|WikiEdit]]",
+	"wikiedit-summary-delete": "Málsgrein eytt með [[$1|WikiEdit]]"
+}

@@ -1,9 +1,11 @@
 {
 	"@metadata": {
 		"authors": [
+			"EdoAug",
 			"Jon Harald Søby"
 		]
 	},
+	"wikiedit-form-publish": "Publiser",
 	"wikiedit-form-cancel": "Avbryt",
 	"wikiedit-form-summary": "Redigeringsforklaring",
 	"wikiedit-form-minor": "Mindre endring",
