@@ -1,12 +1,15 @@
 {
 	"@metadata": {
 		"authors": [
-			")8"
+			")8",
+			"Gzombiejun"
 		]
 	},
 	"wikiedit-form-publish": "发布",
 	"wikiedit-form-cancel": "取消",
 	"wikiedit-form-summary": "编辑摘要",
 	"wikiedit-form-minor": "小编辑",
-	"wikiedit-form-saving": "正在保存..."
+	"wikiedit-form-saving": "正在保存...",
+	"wikiedit-summary-edit": "使用 [[$1|WikiEdit]] 编辑的段落",
+	"wikiedit-summary-delete": "使用 [[$1|WikiEdit]] 删除的段落"
 }

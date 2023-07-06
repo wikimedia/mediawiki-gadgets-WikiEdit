@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"Tofeiku"
+		]
+	},
+	"wikiedit-form-publish": "Terbitkan",
+	"wikiedit-form-cancel": "Batalkan",
+	"wikiedit-form-summary": "Ringkasan suntingan",
+	"wikiedit-form-minor": "Suntingan kecil",
+	"wikiedit-form-saving": "Menyimpan...",
+	"wikiedit-summary-edit": "Perenggan disunting dengan [[$1|WikiSunting]]",
+	"wikiedit-summary-delete": "Perenggan dihapus dengan [[$1|WikiSunting]]"
+}
