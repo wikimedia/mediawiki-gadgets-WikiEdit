@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"Chinamoonroll"
+		]
+	},
+	"wikiedit-form-publish": "Wedar",
+	"wikiedit-form-cancel": "Wangdé",
+	"wikiedit-form-summary": "Uah ringkesan",
+	"wikiedit-form-minor": "Uahan alit",
+	"wikiedit-form-saving": "Ngaraksa...",
+	"wikiedit-summary-edit": "Paragraph kauah nganggén [[$1|WikiÉdit]]",
+	"wikiedit-summary-delete": "Paragraph kaapus nganggén [[$1|WikiÉdit]]"
+}
